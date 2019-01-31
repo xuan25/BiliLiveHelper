@@ -116,7 +116,7 @@ namespace BiliLiveHelper
                             content = new Gift(new User(match.Groups["UserId"].Value, Regex.Unescape(match.Groups["UserName"].Value)), Regex.Unescape(match.Groups["GiftName"].Value), match.Groups["Number"].Value);
                         break;
                     case Item.Types.WELCOME:
-                        match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uid\":(?<UserId>[0-9]+),\"uname\":\"(?<UserName>.*?)\",(\"is_admin\":false|\"isadmin\":0),\"s?vip\":[0-9]+}(,\"roomid\":[0-9]+)?$");
+                        match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uid\":(?<UserId>[0-9]+),\"uname\":\"(?<UserName>.*?)\",(\"is_admin\":(true|false)|\"isadmin\":0),\"s?vip\":[0-9]+}(,\"roomid\":[0-9]+)?$");
                         if (match.Success)
                             content = new Welcome(new User(match.Groups["UserId"].Value, Regex.Unescape(match.Groups["UserName"].Value)));
                         break;
