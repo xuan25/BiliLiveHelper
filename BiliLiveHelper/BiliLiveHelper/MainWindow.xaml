@@ -140,6 +140,16 @@
                         <Run Text="已被禁言" Foreground="#FFDC4646"/>
                     </TextBlock>
                 </ListBoxItem>
+                <ListBoxItem>
+                    <TextBlock>
+                        <Run Text="连接成功" Foreground="#FF19E62C"/>
+                    </TextBlock>
+                </ListBoxItem>
+                <ListBoxItem>
+                    <TextBlock>
+                        <Run Text="连接错误" Foreground="#FFE61919"/>
+                    </TextBlock>
+                </ListBoxItem>
             </ListBox>
             <Rectangle Grid.Row="0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
                 <Rectangle.Fill>

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.NetworkInformation;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,8 +24,6 @@ namespace BiliLiveHelper
 
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
-
-            RoomIdBox.Text = "2746439";
         }
 
         private BiliLiveListener biliLiveListener;
@@ -42,6 +41,11 @@ namespace BiliLiveHelper
 
         private void Connect()
         {
+            if (RoomIdBox.Text.Length == 0)
+            {
+                AppendMessage("请输入直播间房间号", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                return;
+            }
             ConnectBtn.IsEnabled = false;
             ConnectBtn.Content = "正在连接...";
             RoomIdBox.IsEnabled = false;
@@ -50,13 +54,13 @@ namespace BiliLiveHelper
             biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
             biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
             biliLiveListener.Connected += BiliLiveListener_Connected;
-            biliLiveListener.Disconnected += BiliLiveListener_Disconnected;
             biliLiveListener.ConnectionFailed += BiliLiveListener_ConnectionFailed;
             biliLiveListener.Connect();
         }
 
         private void Disconnect()
         {
+            biliLiveListener.Disconnected += BiliLiveListener_Disconnected;
             ConnectBtn.IsEnabled = false;
             ConnectBtn.Content = "正在断开...";
             RoomIdBox.IsEnabled = true;
@@ -73,6 +77,8 @@ namespace BiliLiveHelper
                 RoomIdBox.Visibility = Visibility.Hidden;
                 PopularityBox.Visibility = Visibility.Visible;
                 TitleBox.Text = "弹幕姬 - " + RoomIdBox.Text;
+
+                AppendMessage("已连接", (Color)ColorConverter.ConvertFromString("#FF19E62C"));
             }));
         }
 
@@ -90,15 +96,55 @@ namespace BiliLiveHelper
             }));
         }
 
-        private void BiliLiveListener_ConnectionFailed()
+        private void BiliLiveListener_ConnectionFailed(string message)
         {
-            MessageBox.Show("直播间信息获取失败");
-            Dispatcher.Invoke(new Action(() =>
+            AppendMessage(message, (Color)ColorConverter.ConvertFromString("#FFE61919"));
+            if (IsConnected)
             {
-                ConnectBtn.IsEnabled = true;
-                ConnectBtn.Content = "连接";
-                PopularityBox.Text = "0";
-            }));
+                PingReply pingReply = null;
+                try
+                {
+                    pingReply = new Ping().Send("live.bilibili.com", 10000);
+                }
+                catch (Exception)
+                {
+
+                }
+                if(pingReply != null && pingReply.Status == IPStatus.Success)
+                {
+                    Thread.Sleep(1000);
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        AppendMessage("尝试重连", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                        biliLiveListener.Disconnect();
+                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text));
+                        biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
+                        biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
+                        biliLiveListener.Connected += BiliLiveListener_Connected;
+                        biliLiveListener.ConnectionFailed += BiliLiveListener_ConnectionFailed;
+                        biliLiveListener.Connect();
+                    }));
+                }
+                else
+                {
+                    AppendMessage("网络连接失败", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                    Thread.Sleep(10000);
+                    BiliLiveListener_ConnectionFailed("检测网络");
+                }
+            }
+            else
+            {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    ConnectBtn.IsEnabled = true;
+                    ConnectBtn.Content = "连接";
+                    PopularityBox.Text = "0";
+                    RoomIdBox.IsEnabled = true;
+                    RoomIdBox.Visibility = Visibility.Visible;
+                    PopularityBox.Visibility = Visibility.Hidden;
+                    TitleBox.Text = "弹幕姬";
+                }));
+            }
         }
 
         // Listener recieved
@@ -271,6 +317,30 @@ namespace BiliLiveHelper
                 textBlock.Inlines.Add(user);
 
                 textBlock.Inlines.Add(new Run() { Text = " 已被禁言", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")) });
+
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.Loaded += ListBoxItem_Loaded;
+                DanmakuBox.Items.Add(listBoxItem);
+                RefreshScroll(DanmakuBox);
+            }));
+        }
+
+        private void AppendMessage(string message, Color color)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+
+                Run content = new Run()
+                {
+                    Text = message,
+                    Foreground = new SolidColorBrush(color),
+                    Tag = "Error: "
+                };
+                content.MouseLeftButtonDown += Content_MouseLeftButtonDown;
+                textBlock.Inlines.Add(content);
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;

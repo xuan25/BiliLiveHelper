@@ -17,7 +17,7 @@ namespace BiliLiveHelper
 
         public event GeneralDelegate Connected;
         public event GeneralDelegate Disconnected;
-        public event GeneralDelegate ConnectionFailed;
+        public event MessageDelegate ConnectionFailed;
 
         public event MessageDelegate PopularityRecieved;
         public event MessageDelegate JsonRecieved;
@@ -30,13 +30,23 @@ namespace BiliLiveHelper
 
         private uint GetRealRoomId(uint roomId)
         {
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
-            Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
-            if (match.Success)
-                return uint.Parse(match.Groups["RoomId"].Value);
-            return 0;
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
+                request.Timeout = 10000;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
+                if (match.Success)
+                    return uint.Parse(match.Groups["RoomId"].Value);
+                return 0;
+            }
+            catch (Exception)
+            {
+                ConnectionFailed("未能找到直播间");
+                return 0;
+            }
+            
         }
 
         private Dictionary<string, string> GetRoomInfo(uint roomId)
@@ -46,17 +56,27 @@ namespace BiliLiveHelper
             {
                 return null;
             }
-            HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
-            MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
-            Dictionary<string, string> roomInfo = new Dictionary<string, string>();
-            roomInfo.Add("room_id", roomId.ToString());
-            foreach (Match m in matchCollection)
+            try
             {
-                roomInfo.Add(m.Groups["Key"].Value, m.Groups["Value"].Value);
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
+                request.Timeout = 10000;
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
+                Dictionary<string, string> roomInfo = new Dictionary<string, string>();
+                roomInfo.Add("room_id", roomId.ToString());
+                foreach (Match m in matchCollection)
+                {
+                    roomInfo.Add(m.Groups["Key"].Value, m.Groups["Value"].Value);
+                }
+                return roomInfo;
             }
-            return roomInfo;
+            catch (Exception)
+            {
+                ConnectionFailed("直播间信息获取失败");
+                return null;
+            }
+            
         }
 
         // About Sending message
@@ -97,7 +117,15 @@ namespace BiliLiveHelper
             tcpClient.Connect(roomInfo["dm_server"], int.Parse(roomInfo["dm_port"]));
             NetworkStream networkStream = tcpClient.GetStream();
             string msg = string.Format("{{\"roomid\":{0},\"uid\":{1}}}", roomInfo["room_id"], (long)(1e14 + 2e14 * new Random().NextDouble()));
-            SendMessage(networkStream, (int)MessageType.CONNECT, msg);
+            try
+            {
+                SendMessage(networkStream, (int)MessageType.CONNECT, msg);
+            }
+            catch (Exception)
+            {
+                Disconnect();
+                ConnectionFailed("连接请求发送失败");
+            }
             return tcpClient;
         }
 
@@ -109,7 +137,10 @@ namespace BiliLiveHelper
         {
             heartbeatSenderStarted = false;
             if (heartbeatSenderThread != null)
+            {
                 heartbeatSenderThread.Abort();
+                heartbeatSenderThread.Join();
+            } 
         }
 
         private void StartHeartbeatSender(TcpClient tcpClient)
@@ -120,7 +151,15 @@ namespace BiliLiveHelper
                 heartbeatSenderStarted = true;
                 while (heartbeatSenderStarted)
                 {
-                    SendMessage(tcpClient.GetStream(), (int)MessageType.HEARTBEAT, "");
+                    try
+                    {
+                        SendMessage(tcpClient.GetStream(), (int)MessageType.HEARTBEAT, "");
+                    }
+                    catch (Exception)
+                    {
+                        Disconnect();
+                        ConnectionFailed("心跳包发送失败");
+                    }
                     Thread.Sleep(30 * 1000);
                 }
             });
@@ -136,7 +175,10 @@ namespace BiliLiveHelper
         {
             eventListenerStarted = false;
             if (eventListenerThread != null)
+            {
                 eventListenerThread.Abort();
+                eventListenerThread.Join();
+            } 
         }
 
         private void StartEventListener(TcpClient tcpClient)
@@ -148,55 +190,64 @@ namespace BiliLiveHelper
                 NetworkStream networkStream = tcpClient.GetStream();
                 while (eventListenerStarted)
                 {
-                    // Read data length (4)
-                    networkStream.Read(buffer, 0, 4);
-                    int datalength = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
+                    try
+                    {
+                        // Read data length (4)
+                        networkStream.Read(buffer, 0, 4);
+                        int datalength = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
 
-                    // Check data length
-                    if (datalength < 16)
+                        // Check data length
+                        if (datalength < 16)
+                        {
+                            Disconnect();
+                            break;
+                        }
+
+                        // Read header length and protocol version (4)
+                        networkStream.Read(buffer, 0, 4);
+
+                        // Read message type (4)
+                        networkStream.Read(buffer, 0, 4);
+                        int typeId = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
+
+                        // Read sequence (4)
+                        networkStream.Read(buffer, 0, 4);
+
+                        // Read message
+                        int messageLength = datalength - 16;
+                        byte[] messageBuffer = new byte[messageLength];
+                        networkStream.Read(messageBuffer, 0, messageLength);
+
+                        // Parse
+                        switch (typeId)
+                        {
+                            case 3:
+                                {
+                                    uint popularity = BitConverter.ToUInt32(messageBuffer.Take(4).Reverse().ToArray(), 0);
+                                    PopularityRecieved?.Invoke(popularity.ToString());
+                                    break;
+                                }
+                            case 5:
+                                {
+                                    string json = Encoding.UTF8.GetString(messageBuffer, 0, messageLength);
+                                    JsonRecieved?.Invoke(json);
+                                    break;
+                                }
+                            case 8:
+                                {
+                                    ServerHeartbeatRecieved?.Invoke();
+                                    break;
+                                }
+                            default:
+                                break;
+                        }
+                    }
+                    catch (Exception)
                     {
                         Disconnect();
-                        break;
+                        ConnectionFailed("数据读取失败");
                     }
 
-                    // Read header length and protocol version (4)
-                    networkStream.Read(buffer, 0, 4);
-
-                    // Read message type (4)
-                    networkStream.Read(buffer, 0, 4);
-                    var typeId = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
-
-                    // Read sequence (4)
-                    networkStream.Read(buffer, 0, 4);
-
-                    // Read message
-                    int messageLength = datalength - 16;
-                    byte[] messageBuffer = new byte[messageLength];
-                    networkStream.Read(messageBuffer, 0, messageLength);
-
-                    // Parse
-                    switch (typeId)
-                    {
-                        case 3:
-                            {
-                                uint popularity = BitConverter.ToUInt32(messageBuffer.Take(4).Reverse().ToArray(), 0);
-                                PopularityRecieved?.Invoke(popularity.ToString());
-                                break;
-                            }
-                        case 5:
-                            {
-                                string json = Encoding.UTF8.GetString(messageBuffer, 0, messageLength);
-                                JsonRecieved?.Invoke(json);
-                                break;
-                            }
-                        case 8:
-                            {
-                                ServerHeartbeatRecieved?.Invoke();
-                                break;
-                            }
-                        default:
-                            break;
-                    }
                 }
             });
             eventListenerThread.Start();
@@ -222,11 +273,10 @@ namespace BiliLiveHelper
             {
                 Dictionary<string, string> roomInfo = GetRoomInfo(RoomId);
                 if(roomInfo == null)
-                {
-                    ConnectionFailed();
                     return;
-                }
                 tcpClient = Connect(roomInfo);
+                tcpClient.ReceiveTimeout = 10000;
+                tcpClient.SendTimeout = 10000;
                 StartEventListener(tcpClient);
                 StartHeartbeatSender(tcpClient);
                 Connected?.Invoke();
@@ -242,7 +292,8 @@ namespace BiliLiveHelper
             {
                 StopHeartbeatSender();
                 StopEventListener();
-                tcpClient.Close();
+                if(tcpClient != null)
+                    tcpClient.Close();
                 Disconnected?.Invoke();
             }).Start();
         }
