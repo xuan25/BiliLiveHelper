@@ -23,6 +23,8 @@ namespace BiliLiveHelper
 
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
+
+            RoomIdBox.Text = "2746439";
         }
 
         private BiliLiveListener biliLiveListener;
@@ -68,6 +70,9 @@ namespace BiliLiveHelper
             {
                 ConnectBtn.IsEnabled = true;
                 ConnectBtn.Content = "断开";
+                RoomIdBox.Visibility = Visibility.Hidden;
+                PopularityBox.Visibility = Visibility.Visible;
+                TitleBox.Text = "弹幕姬 - " + RoomIdBox.Text;
             }));
         }
 
@@ -76,16 +81,12 @@ namespace BiliLiveHelper
             IsConnected = false;
             Dispatcher.Invoke(new Action(() =>
             {
-                try
-                {
-                    ConnectBtn.IsEnabled = true;
-                    ConnectBtn.Content = "连接";
-                    PopularityBox.Text = "0";
-                }
-                catch (TaskCanceledException ex)
-                {
-                    return;
-                }
+                ConnectBtn.IsEnabled = true;
+                ConnectBtn.Content = "连接";
+                PopularityBox.Text = "0";
+                RoomIdBox.Visibility = Visibility.Visible;
+                PopularityBox.Visibility = Visibility.Hidden;
+                TitleBox.Text = "弹幕姬";
             }));
         }
 
@@ -118,6 +119,12 @@ namespace BiliLiveHelper
                         break;
                     case BiliLiveJsonParser.Item.Types.WELCOME:
                         AppendWelcome((BiliLiveJsonParser.Welcome)item.Content);
+                        break;
+                    case BiliLiveJsonParser.Item.Types.WELCOME_GUARD:
+                        AppendWelcomeGuard((BiliLiveJsonParser.WelcomeGuard)item.Content);
+                        break;
+                    case BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG:
+                        AppendRoomBlock((BiliLiveJsonParser.RoomBlock)item.Content);
                         break;
                 }
             }
@@ -212,6 +219,58 @@ namespace BiliLiveHelper
                 textBlock.Inlines.Add(user);
 
                 textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.Loaded += ListBoxItem_Loaded;
+                DanmakuBox.Items.Add(listBoxItem);
+                RefreshScroll(DanmakuBox);
+            }));
+        }
+
+        private void AppendWelcomeGuard(BiliLiveJsonParser.WelcomeGuard welcomeGuard)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+
+                Run user = new Run()
+                {
+                    Text = welcomeGuard.User.Name,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")),
+                    Tag = welcomeGuard.User.Id
+                };
+                user.MouseLeftButtonDown += User_MouseLeftButtonDown;
+                textBlock.Inlines.Add(user);
+
+                textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.Loaded += ListBoxItem_Loaded;
+                DanmakuBox.Items.Add(listBoxItem);
+                RefreshScroll(DanmakuBox);
+            }));
+        }
+
+        private void AppendRoomBlock(BiliLiveJsonParser.RoomBlock roomBlock)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+
+                Run user = new Run()
+                {
+                    Text = roomBlock.User.Name,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")),
+                    Tag = roomBlock.User.Id
+                };
+                user.MouseLeftButtonDown += User_MouseLeftButtonDown;
+                textBlock.Inlines.Add(user);
+
+                textBlock.Inlines.Add(new Run() { Text = " 已被禁言", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
@@ -349,6 +408,27 @@ namespace BiliLiveHelper
                     return false;
             }
             return true;
+        }
+
+        // About Hint
+
+        private void RoomIdBox_GotFocus(object sender, RoutedEventArgs e)
+        {
+            HintBox.Visibility = Visibility.Hidden;
+        }
+
+        private void RoomIdBox_LostFocus(object sender, RoutedEventArgs e)
+        {
+            if (RoomIdBox.Text.Length == 0)
+                HintBox.Visibility = Visibility.Visible;
+        }
+
+        private void RoomIdBox_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (RoomIdBox.Text.Length == 0 && !RoomIdBox.IsFocused)
+                HintBox.Visibility = Visibility.Visible;
+            else
+                HintBox.Visibility = Visibility.Hidden;
         }
 
         // About Closing
