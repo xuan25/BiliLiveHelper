@@ -5,8 +5,20 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BiliLiveHelper"
         mc:Ignorable="d"
-        Title="{Binding ElementName=TitleBox, Path=Text}" Height="400" Width="220" MinHeight="400" MinWidth="220" Closing="Window_Closing" WindowStyle="None" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Background="#99161616" Foreground="White" Topmost="True">
+        x:Name="Main" Title="{Binding ElementName=TitleBox, Path=Text}" Height="440" Width="260" MinHeight="250" MinWidth="260" BorderThickness="16" Closing="Window_Closing" WindowStyle="None" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Background="#99161616" Foreground="White" Topmost="True" ShowInTaskbar="False" Loaded="Main_Loaded">
     <Window.Resources>
+        <Storyboard x:Key="ShowWindow">
+            <DoubleAnimation Storyboard.TargetName="Main" 
+                            Storyboard.TargetProperty="Opacity"
+                            BeginTime="00:00:00.000" From="0" To="1"
+                            Duration="00:00:00.200"/>
+        </Storyboard>
+        <Storyboard x:Key="HideWindow">
+            <DoubleAnimation Storyboard.TargetName="Main" 
+                            Storyboard.TargetProperty="Opacity"
+                            BeginTime="00:00:00.000" From="1" To="0"
+                            Duration="00:00:00.200"/>
+        </Storyboard>
         <Storyboard x:Key="CloseBtnMouseEnter">
             <ColorAnimation Storyboard.TargetName="CloseBtnIcon" 
                             Storyboard.TargetProperty="(Fill).(SolidColorBrush.Color)"
@@ -42,6 +54,9 @@
             </Style.Triggers>
         </Style>
     </Window.Resources>
+    <Window.Effect>
+        <DropShadowEffect x:Name="DropShadow" ShadowDepth="1" BlurRadius="16" Direction="270" Opacity="0.5" Color="#FF211613"/>
+    </Window.Effect>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
@@ -99,12 +114,16 @@
             </Grid>
         </Grid>
         <Grid Grid.Row="1" Background="{Binding ElementName=Header, Path=Background}">
-            <Grid Margin="0,4">
-                <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="10,0,0,0" Padding="2" FontSize="14" Text="请输入房间号" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                <TextBox x:Name="RoomIdBox" Background="Transparent" Foreground="White" HorizontalAlignment="Left" Height="23" Margin="10,0,0,0" Padding="2" TextWrapping="NoWrap" FontSize="14" VerticalAlignment="Center" Width="120" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" CaretBrush="#FFFFFFFF" SelectionBrush="#FF28AAFF" GotFocus="RoomIdBox_GotFocus" LostFocus="RoomIdBox_LostFocus" TextChanged="RoomIdBox_TextChanged"/>
-                <Button x:Name="ConnectBtn" FontSize="14" Content="连接" HorizontalAlignment="Left" Margin="140,0,0,0" VerticalAlignment="Center" Width="75" Style="{StaticResource ButtonStyle}" Click="ConnectBtn_Click"/>
-                <TextBlock HorizontalAlignment="Left" Margin="10,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center" Visibility="{Binding ElementName=PopularityBox, Path=Visibility}"/>
+            <Grid Margin="10,4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="90"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="请输入房间号" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                <TextBox x:Name="RoomIdBox" Background="Transparent" Foreground="White" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" Padding="2" TextWrapping="NoWrap" FontSize="14" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" CaretBrush="#FFFFFFFF" SelectionBrush="#FF28AAFF" GotFocus="RoomIdBox_GotFocus" LostFocus="RoomIdBox_LostFocus" TextChanged="RoomIdBox_TextChanged"/>
+                <TextBlock HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center" Visibility="{Binding ElementName=PopularityBox, Path=Visibility}"/>
                 <TextBlock x:Name="PopularityBox" HorizontalAlignment="Left" Margin="50,0,0,0" TextWrapping="Wrap" FontSize="14" Text="0" VerticalAlignment="Center" Visibility="Hidden"/>
+                <Button Grid.Column="1" x:Name="ConnectBtn" FontSize="14" Content="连接" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Style="{StaticResource ButtonStyle}" Click="ConnectBtn_Click"/>
             </Grid>
         </Grid>
 
@@ -150,6 +169,7 @@
                         <Run Text="连接错误" Foreground="#FFE61919"/>
                     </TextBlock>
                 </ListBoxItem>
+                
             </ListBox>
             <Rectangle Grid.Row="0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
                 <Rectangle.Fill>

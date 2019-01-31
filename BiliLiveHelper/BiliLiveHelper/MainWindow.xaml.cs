@@ -17,6 +17,9 @@ namespace BiliLiveHelper
     /// </summary>
     public partial class MainWindow : Window
     {
+        private BiliLiveListener biliLiveListener;
+        private bool IsConnected;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -26,8 +29,14 @@ namespace BiliLiveHelper
             GiftBox.Items.Clear();
         }
 
-        private BiliLiveListener biliLiveListener;
-        private bool IsConnected;
+        // About startup
+
+        private void Main_Loaded(object sender, RoutedEventArgs e)
+        {
+            ((Storyboard)Resources["ShowWindow"]).Begin();
+        }
+
+        // About button
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
@@ -180,7 +189,7 @@ namespace BiliLiveHelper
         {
             Dispatcher.Invoke(new Action(() =>
             {
-                PopularityBox.Text = message;
+                PopularityBox.Text = uint.Parse(message).ToString("N0");
             }));
         }
 
@@ -507,7 +516,12 @@ namespace BiliLiveHelper
         {
             if (IsConnected)
                 Disconnect();
-            Environment.Exit(0);
+            ((Storyboard)Resources["HideWindow"]).Completed += delegate
+            {
+                Environment.Exit(0);
+            };
+            ((Storyboard)Resources["HideWindow"]).Begin();
+            e.Cancel = true;
         }
     }
 }
