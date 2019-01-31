@@ -34,6 +34,7 @@ namespace BiliLiveHelper
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
             ((Storyboard)Resources["ShowWindow"]).Begin();
+            RoomIdBox.Focus();
         }
 
         // About button
@@ -102,6 +103,8 @@ namespace BiliLiveHelper
                 RoomIdBox.Visibility = Visibility.Visible;
                 PopularityBox.Visibility = Visibility.Hidden;
                 TitleBox.Text = "弹幕姬";
+
+                AppendMessage("已断开", (Color)ColorConverter.ConvertFromString("#FFE61919"));
             }));
         }
 
@@ -224,6 +227,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
@@ -252,6 +256,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 GiftBox.Items.Add(listBoxItem);
                 RefreshScroll(GiftBox);
@@ -278,6 +283,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
@@ -304,6 +310,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
@@ -330,6 +337,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
@@ -354,6 +362,7 @@ namespace BiliLiveHelper
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
@@ -386,7 +395,7 @@ namespace BiliLiveHelper
             }
         }
 
-        // About item click
+        // About item mouse event
 
         private void ListBoxItem_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
@@ -395,6 +404,12 @@ namespace BiliLiveHelper
         }
 
         private void ListBoxItem_MouseRightButtonUp(object sender, MouseButtonEventArgs e)
+        {
+            ListBoxItem listBoxItem = (ListBoxItem)sender;
+            listBoxItem.IsSelected = false;
+        }
+
+        private void ListBoxItem_MouseLeave(object sender, MouseEventArgs e)
         {
             ListBoxItem listBoxItem = (ListBoxItem)sender;
             listBoxItem.IsSelected = false;
@@ -491,20 +506,9 @@ namespace BiliLiveHelper
 
         // About Hint
 
-        private void RoomIdBox_GotFocus(object sender, RoutedEventArgs e)
-        {
-            HintBox.Visibility = Visibility.Hidden;
-        }
-
-        private void RoomIdBox_LostFocus(object sender, RoutedEventArgs e)
-        {
-            if (RoomIdBox.Text.Length == 0)
-                HintBox.Visibility = Visibility.Visible;
-        }
-
         private void RoomIdBox_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (RoomIdBox.Text.Length == 0 && !RoomIdBox.IsFocused)
+            if (RoomIdBox.Text.Length == 0)
                 HintBox.Visibility = Visibility.Visible;
             else
                 HintBox.Visibility = Visibility.Hidden;

@@ -41,7 +41,7 @@ namespace BiliLiveHelper
                     return uint.Parse(match.Groups["RoomId"].Value);
                 return 0;
             }
-            catch (Exception)
+            catch (WebException)
             {
                 ConnectionFailed("未能找到直播间");
                 return 0;
@@ -71,7 +71,7 @@ namespace BiliLiveHelper
                 }
                 return roomInfo;
             }
-            catch (Exception)
+            catch (WebException)
             {
                 ConnectionFailed("直播间信息获取失败");
                 return null;
@@ -121,7 +121,7 @@ namespace BiliLiveHelper
             {
                 SendMessage(networkStream, (int)MessageType.CONNECT, msg);
             }
-            catch (Exception)
+            catch (SocketException)
             {
                 Disconnect();
                 ConnectionFailed("连接请求发送失败");
@@ -155,7 +155,7 @@ namespace BiliLiveHelper
                     {
                         SendMessage(tcpClient.GetStream(), (int)MessageType.HEARTBEAT, "");
                     }
-                    catch (Exception)
+                    catch (SocketException)
                     {
                         Disconnect();
                         ConnectionFailed("心跳包发送失败");
@@ -242,12 +242,11 @@ namespace BiliLiveHelper
                                 break;
                         }
                     }
-                    catch (Exception)
+                    catch (SocketException)
                     {
                         Disconnect();
                         ConnectionFailed("数据读取失败");
                     }
-
                 }
             });
             eventListenerThread.Start();
@@ -290,8 +289,8 @@ namespace BiliLiveHelper
         {
             new Thread(delegate ()
             {
-                StopHeartbeatSender();
                 StopEventListener();
+                StopHeartbeatSender();
                 if(tcpClient != null)
                     tcpClient.Close();
                 Disconnected?.Invoke();

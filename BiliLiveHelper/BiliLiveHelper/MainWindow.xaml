@@ -120,7 +120,7 @@
                     <ColumnDefinition Width="90"/>
                 </Grid.ColumnDefinitions>
                 <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="请输入房间号" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                <TextBox x:Name="RoomIdBox" Background="Transparent" Foreground="White" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" Padding="2" TextWrapping="NoWrap" FontSize="14" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" CaretBrush="#FFFFFFFF" SelectionBrush="#FF28AAFF" GotFocus="RoomIdBox_GotFocus" LostFocus="RoomIdBox_LostFocus" TextChanged="RoomIdBox_TextChanged"/>
+                <TextBox x:Name="RoomIdBox" Background="Transparent" Foreground="White" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" Padding="2" TextWrapping="NoWrap" FontSize="14" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" CaretBrush="#FFFFFFFF" SelectionBrush="#FF28AAFF" TextChanged="RoomIdBox_TextChanged"/>
                 <TextBlock HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center" Visibility="{Binding ElementName=PopularityBox, Path=Visibility}"/>
                 <TextBlock x:Name="PopularityBox" HorizontalAlignment="Left" Margin="50,0,0,0" TextWrapping="Wrap" FontSize="14" Text="0" VerticalAlignment="Center" Visibility="Hidden"/>
                 <Button Grid.Column="1" x:Name="ConnectBtn" FontSize="14" Content="连接" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Style="{StaticResource ButtonStyle}" Click="ConnectBtn_Click"/>
@@ -166,7 +166,7 @@
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="连接错误" Foreground="#FFE61919"/>
+                        <Run Text="连接断开" Foreground="#FFE61919"/>
                     </TextBlock>
                 </ListBoxItem>
                 
