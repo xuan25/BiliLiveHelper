@@ -174,7 +174,8 @@ namespace BiliLiveHelper
             ConnectBtn.Content = "正在断开...";
             RoomIdBox.IsEnabled = true;
             biliLiveListener.Disconnect();
-            biliLiveInfo.StopInfoListener();
+            if(biliLiveInfo != null)
+                biliLiveInfo.StopInfoListener();
         }
 
         private void BiliLiveListener_Connected()
@@ -685,6 +686,12 @@ namespace BiliLiveHelper
             };
             ((Storyboard)Resources["HideWindow"]).Begin();
             e.Cancel = true;
+        }
+
+        public void StopProformanceMonitor()
+        {
+            if(proformanceMonitor != null)
+                proformanceMonitor.StopMonitoring();
         }
 
         // Save & Load
