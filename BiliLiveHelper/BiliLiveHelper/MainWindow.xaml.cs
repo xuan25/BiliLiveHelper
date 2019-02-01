@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Net.NetworkInformation;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text.RegularExpressions;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
@@ -19,11 +21,28 @@ namespace BiliLiveHelper
     {
         private BiliLiveListener biliLiveListener;
         private bool IsConnected;
+        private List<BiliLiveJsonParser.Item> RecievedItems;
+
+        [Serializable]
+        private class Status
+        {
+            public string RoomId;
+            public bool IsConnected;
+            public BiliLiveJsonParser.Item[] Items;
+
+            public Status(string roomId, bool isConnected, BiliLiveJsonParser.Item[] items)
+            {
+                RoomId = roomId;
+                IsConnected = isConnected;
+                Items = items;
+            }
+        }
 
         public MainWindow()
         {
             InitializeComponent();
             IsConnected = false;
+            RecievedItems = new List<BiliLiveJsonParser.Item>();
 
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
@@ -35,6 +54,33 @@ namespace BiliLiveHelper
         {
             ((Storyboard)Resources["ShowWindow"]).Begin();
             RoomIdBox.Focus();
+
+            ProformanceMonitor proformanceMonitor = new ProformanceMonitor();
+            proformanceMonitor.CpuProformanceRecieved += ProformanceMonitor_CpuProformanceRecieved;
+            proformanceMonitor.GpuProformanceRecieved += ProformanceMonitor_GpuProformanceRecieved;
+            bool[] availability = proformanceMonitor.StartMonitoring();
+            if (!availability[0])
+                CpuUsage.Visibility = Visibility.Hidden;
+            if (!availability[1])
+                GpuUsage.Visibility = Visibility.Hidden;
+
+            LoadConfig();
+        }
+
+        private void ProformanceMonitor_CpuProformanceRecieved(uint percentage)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                CpuUsage.Text = string.Format("{0}%", percentage);
+            }));
+        }
+
+        private void ProformanceMonitor_GpuProformanceRecieved(uint percentage)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                GpuUsage.Text = string.Format("{0}%", percentage);
+            }));
         }
 
         // About button
@@ -85,7 +131,7 @@ namespace BiliLiveHelper
                 ConnectBtn.IsEnabled = true;
                 ConnectBtn.Content = "断开";
                 RoomIdBox.Visibility = Visibility.Hidden;
-                PopularityBox.Visibility = Visibility.Visible;
+                PopularityGrid.Visibility = Visibility.Visible;
                 TitleBox.Text = "弹幕姬 - " + RoomIdBox.Text;
 
                 AppendMessage("已连接", (Color)ColorConverter.ConvertFromString("#FF19E62C"));
@@ -101,7 +147,7 @@ namespace BiliLiveHelper
                 ConnectBtn.Content = "连接";
                 PopularityBox.Text = "0";
                 RoomIdBox.Visibility = Visibility.Visible;
-                PopularityBox.Visibility = Visibility.Hidden;
+                PopularityGrid.Visibility = Visibility.Hidden;
                 TitleBox.Text = "弹幕姬";
 
                 AppendMessage("已断开", (Color)ColorConverter.ConvertFromString("#FFE61919"));
@@ -116,7 +162,7 @@ namespace BiliLiveHelper
                 PingReply pingReply = null;
                 try
                 {
-                    pingReply = new Ping().Send("live.bilibili.com", 10000);
+                    pingReply = new Ping().Send("live.bilibili.com", BiliLiveListener.TIME_OUT);
                 }
                 catch (Exception)
                 {
@@ -153,7 +199,7 @@ namespace BiliLiveHelper
                     PopularityBox.Text = "0";
                     RoomIdBox.IsEnabled = true;
                     RoomIdBox.Visibility = Visibility.Visible;
-                    PopularityBox.Visibility = Visibility.Hidden;
+                    PopularityGrid.Visibility = Visibility.Hidden;
                     TitleBox.Text = "弹幕姬";
                 }));
             }
@@ -165,8 +211,24 @@ namespace BiliLiveHelper
         {
             Console.WriteLine("Json: " + message);
             BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(message);
+            AppendItem(item);
+        }
+
+        private void BiliLiveListener_PopularityRecieved(string message)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                PopularityBox.Text = uint.Parse(message).ToString("N0");
+            }));
+        }
+
+        // Append list item
+
+        private void AppendItem(BiliLiveJsonParser.Item item)
+        {
             if (item != null)
             {
+                RecievedItems.Add(item);
                 switch (item.Type)
                 {
                     case BiliLiveJsonParser.Item.Types.DANMU_MSG:
@@ -187,16 +249,6 @@ namespace BiliLiveHelper
                 }
             }
         }
-
-        private void BiliLiveListener_PopularityRecieved(string message)
-        {
-            Dispatcher.Invoke(new Action(() =>
-            {
-                PopularityBox.Text = uint.Parse(message).ToString("N0");
-            }));
-        }
-
-        // Append list item
 
         private void AppendDanmaku(BiliLiveJsonParser.Danmaku danmaku)
         {
@@ -445,7 +497,14 @@ namespace BiliLiveHelper
             }
             else
             {
-                this.DragMove();
+                try
+                {
+                    this.DragMove();
+                }
+                catch (InvalidOperationException)
+                {
+
+                }
                 titleflag = TitleFlag.DragMove;
             }
         }
@@ -518,14 +577,81 @@ namespace BiliLiveHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
             if (IsConnected)
                 Disconnect();
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
+                SaveConfig(status);
                 Environment.Exit(0);
             };
             ((Storyboard)Resources["HideWindow"]).Begin();
             e.Cancel = true;
+        }
+
+        private void SaveConfig(Status status)
+        {
+            string fileDirectory = System.IO.Path.GetTempPath() + "BiliLiveHelper\\";
+            if (!Directory.Exists(fileDirectory))
+                Directory.CreateDirectory(fileDirectory);
+            string fileName = "Config";
+            Stream stream = new FileStream(fileDirectory + fileName + ".dat", FileMode.Create, FileAccess.ReadWrite);
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            binaryFormatter.Serialize(stream, status);
+            stream.Close();
+        }
+
+        private bool LoadConfig()
+        {
+            string path = System.IO.Path.GetTempPath() + "BiliLiveHelper\\Config.dat";
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+            try
+            {
+                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                Status status = (Status)binaryFormatter.Deserialize(stream);
+                stream.Close();
+                ApplyStatue(status);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void ApplyStatue(Status status)
+        {
+            new Thread(delegate ()
+            {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    RoomIdBox.Text = status.RoomId;
+                }));
+                foreach (BiliLiveJsonParser.Item i in status.Items)
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        AppendItem(i);
+                    }));
+                if (status.IsConnected)
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        Connect();
+                    }));
+            }).Start();
+            
+        }
+
+        // Clear
+
+        private void ClearBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DanmakuBox.Items.Clear();
+            GiftBox.Items.Clear();
+            RecievedItems.Clear();
         }
     }
 }

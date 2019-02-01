@@ -25,6 +25,7 @@ namespace BiliLiveHelper
 
         private TcpClient tcpClient;
         private uint RoomId;
+        public static int TIME_OUT = 10000;
 
         // About get info
 
@@ -33,7 +34,7 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
-                request.Timeout = 10000;
+                request.Timeout = TIME_OUT;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
@@ -59,7 +60,7 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
-                request.Timeout = 10000;
+                request.Timeout = TIME_OUT;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
@@ -137,10 +138,7 @@ namespace BiliLiveHelper
         {
             heartbeatSenderStarted = false;
             if (heartbeatSenderThread != null)
-            {
                 heartbeatSenderThread.Abort();
-                heartbeatSenderThread.Join();
-            } 
         }
 
         private void StartHeartbeatSender(TcpClient tcpClient)
@@ -175,10 +173,7 @@ namespace BiliLiveHelper
         {
             eventListenerStarted = false;
             if (eventListenerThread != null)
-            {
                 eventListenerThread.Abort();
-                eventListenerThread.Join();
-            } 
         }
 
         private void StartEventListener(TcpClient tcpClient)
@@ -274,8 +269,6 @@ namespace BiliLiveHelper
                 if(roomInfo == null)
                     return;
                 tcpClient = Connect(roomInfo);
-                tcpClient.ReceiveTimeout = 10000;
-                tcpClient.SendTimeout = 10000;
                 StartEventListener(tcpClient);
                 StartHeartbeatSender(tcpClient);
                 Connected?.Invoke();
@@ -289,6 +282,10 @@ namespace BiliLiveHelper
         {
             new Thread(delegate ()
             {
+                Delegate[] delegates = ConnectionFailed.GetInvocationList();
+                foreach (Delegate d in delegates)
+                    ConnectionFailed -= (MessageDelegate)d;
+
                 StopEventListener();
                 StopHeartbeatSender();
                 if(tcpClient != null)

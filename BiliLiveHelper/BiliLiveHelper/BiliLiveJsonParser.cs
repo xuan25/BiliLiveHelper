@@ -5,6 +5,7 @@ namespace BiliLiveHelper
 {
     class BiliLiveJsonParser
     {
+        [Serializable]
         public class Item
         {
             public enum Types { DANMU_MSG, SEND_GIFT, WELCOME, WELCOME_GUARD, ENTRY_EFFECT, SYS_MSG, ROOM_BLOCK_MSG, COMBO_SEND, COMBO_END, ROOM_RANK }
@@ -18,6 +19,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class User
         {
             public uint Id;
@@ -30,6 +32,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class Danmaku
         {
             public User Sender;
@@ -42,6 +45,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class Gift
         {
             public User Sender;
@@ -56,6 +60,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class Welcome
         {
             public User User;
@@ -66,6 +71,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class WelcomeGuard
         {
             public User User;
@@ -76,6 +82,7 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
         public class RoomBlock
         {
             public User User;
