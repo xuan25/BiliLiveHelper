@@ -28,6 +28,8 @@ namespace BiliLiveHelper
         private uint ListCapacity = 100;
         private int RetryWaitting = 5000;
 
+        private string Log;
+
         [Serializable]
         private class Status
         {
@@ -65,6 +67,7 @@ namespace BiliLiveHelper
             InitializeComponent();
             IsConnected = false;
             RecievedItems = new List<BiliLiveJsonParser.Item>();
+            Log = string.Empty;
 
             LoadConfig();
         }
@@ -140,7 +143,7 @@ namespace BiliLiveHelper
             else
                 Connect();
             Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
-            SaveConfig(status);
+            SaveStatus(status);
         }
 
         // About Connection
@@ -292,7 +295,7 @@ namespace BiliLiveHelper
 
         private void BiliLiveListener_JsonRecieved(string message)
         {
-            Console.WriteLine("Json: " + message);
+            Log += message + "\r\n";
             BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(message);
             AppendItem(item);
         }
@@ -675,15 +678,16 @@ namespace BiliLiveHelper
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
                 proformanceMonitor.StopMonitoring();
+                SaveLog(Log);
                 SaveConfig(config);
-                SaveConfig(status);
+                SaveStatus(status);
                 Environment.Exit(0);
             };
             ((Storyboard)Resources["HideWindow"]).Begin();
             e.Cancel = true;
         }
 
-        // SL
+        // Save & Load
 
         private void SaveConfig(Config config)
         {
@@ -727,7 +731,7 @@ namespace BiliLiveHelper
             this.Width = config.Width;
         }
 
-        private void SaveConfig(Status status)
+        private void SaveStatus(Status status)
         {
             string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
@@ -778,6 +782,35 @@ namespace BiliLiveHelper
             }
         }
 
+        private void SaveLog(string log)
+        {
+            string folder = Path.GetTempPath() + "BiliLiveHelper\\Logs\\";
+            Directory.CreateDirectory(folder);
+            string time = DateTime.Now.ToString().Replace(':', '-').Replace('/', '-');
+
+            int i = 0;
+            while (i < 100)
+            {
+                string filename = time;
+                if (i != 0)
+                {
+                    filename = filename + " (" + i + ")";
+                }
+                if (!File.Exists(folder + filename + ".log"))
+                {
+                    try
+                    {
+                        StreamWriter streamWriter = new StreamWriter(folder + filename + ".log", false);
+                        streamWriter.Write(log);
+                        streamWriter.Close();
+                        break;
+                    }
+                    catch { }
+                }
+                i++;
+            }
+        }
+
         // Clear
 
         private void ClearBtn_Click(object sender, RoutedEventArgs e)
@@ -787,7 +820,6 @@ namespace BiliLiveHelper
             RecievedItems.Clear();
 
             Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
-            SaveConfig(status);
         }
 
         // Open page
