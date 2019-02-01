@@ -158,6 +158,11 @@ namespace BiliLiveHelper
                         Disconnect();
                         ConnectionFailed("心跳包发送失败");
                     }
+                    catch (InvalidOperationException)
+                    {
+                        Disconnect();
+                        ConnectionFailed("心跳包发送失败");
+                    }
                     Thread.Sleep(30 * 1000);
                 }
             });
@@ -238,6 +243,11 @@ namespace BiliLiveHelper
                         }
                     }
                     catch (SocketException)
+                    {
+                        Disconnect();
+                        ConnectionFailed("数据读取失败");
+                    }
+                    catch (IOException)
                     {
                         Disconnect();
                         ConnectionFailed("数据读取失败");
