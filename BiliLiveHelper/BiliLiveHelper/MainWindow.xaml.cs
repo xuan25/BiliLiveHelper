@@ -20,8 +20,10 @@ namespace BiliLiveHelper
     public partial class MainWindow : Window
     {
         private BiliLiveListener biliLiveListener;
+        private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
+        public static int TIMEOUT = 10000;
 
         [Serializable]
         private class Status
@@ -43,15 +45,15 @@ namespace BiliLiveHelper
             InitializeComponent();
             IsConnected = false;
             RecievedItems = new List<BiliLiveJsonParser.Item>();
-
-            DanmakuBox.Items.Clear();
-            GiftBox.Items.Clear();
         }
 
         // About startup
 
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
+            DanmakuBox.Items.Clear();
+            GiftBox.Items.Clear();
+
             ((Storyboard)Resources["ShowWindow"]).Begin();
             RoomIdBox.Focus();
 
@@ -91,6 +93,8 @@ namespace BiliLiveHelper
                 Disconnect();
             else
                 Connect();
+            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
+            SaveConfig(status);
         }
 
         // About Connection
@@ -106,7 +110,7 @@ namespace BiliLiveHelper
             ConnectBtn.Content = "正在连接...";
             RoomIdBox.IsEnabled = false;
 
-            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text));
+            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), TIMEOUT);
             biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
             biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
             biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -121,21 +125,36 @@ namespace BiliLiveHelper
             ConnectBtn.Content = "正在断开...";
             RoomIdBox.IsEnabled = true;
             biliLiveListener.Disconnect();
+            biliLiveInfo.StopInfoListener();
         }
 
         private void BiliLiveListener_Connected()
         {
             IsConnected = true;
+            uint roomId = 0;
             Dispatcher.Invoke(new Action(() =>
             {
                 ConnectBtn.IsEnabled = true;
                 ConnectBtn.Content = "断开";
                 RoomIdBox.Visibility = Visibility.Hidden;
-                PopularityGrid.Visibility = Visibility.Visible;
+                InfoGrid.Visibility = Visibility.Visible;
                 TitleBox.Text = "弹幕姬 - " + RoomIdBox.Text;
 
                 AppendMessage("已连接", (Color)ColorConverter.ConvertFromString("#FF19E62C"));
+
+                roomId = uint.Parse(RoomIdBox.Text);
             }));
+
+            
+            biliLiveInfo = new BiliLiveInfo(roomId);
+            BiliLiveInfo.Info info = biliLiveInfo.GetInfo(TIMEOUT);
+            if (info != null)
+            {
+                BiliLiveInfo_InfoUpdate(info);
+            }
+            biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
+            biliLiveInfo.StartInfoListener(TIMEOUT, TIMEOUT);
+
         }
 
         private void BiliLiveListener_Disconnected()
@@ -146,8 +165,10 @@ namespace BiliLiveHelper
                 ConnectBtn.IsEnabled = true;
                 ConnectBtn.Content = "连接";
                 PopularityBox.Text = "0";
+                AreaBox.Text = "正在获取分区...";
+                InfoGrid.ToolTip = null;
                 RoomIdBox.Visibility = Visibility.Visible;
-                PopularityGrid.Visibility = Visibility.Hidden;
+                InfoGrid.Visibility = Visibility.Hidden;
                 TitleBox.Text = "弹幕姬";
 
                 AppendMessage("已断开", (Color)ColorConverter.ConvertFromString("#FFE61919"));
@@ -162,7 +183,7 @@ namespace BiliLiveHelper
                 PingReply pingReply = null;
                 try
                 {
-                    pingReply = new Ping().Send("live.bilibili.com", BiliLiveListener.TIME_OUT);
+                    pingReply = new Ping().Send("live.bilibili.com", TIMEOUT);
                 }
                 catch (Exception)
                 {
@@ -175,7 +196,7 @@ namespace BiliLiveHelper
                     {
                         AppendMessage("尝试重连", (Color)ColorConverter.ConvertFromString("#FFE61919"));
                         biliLiveListener.Disconnect();
-                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text));
+                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), TIMEOUT);
                         biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
                         biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
                         biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -199,10 +220,26 @@ namespace BiliLiveHelper
                     PopularityBox.Text = "0";
                     RoomIdBox.IsEnabled = true;
                     RoomIdBox.Visibility = Visibility.Visible;
-                    PopularityGrid.Visibility = Visibility.Hidden;
+                    InfoGrid.Visibility = Visibility.Hidden;
                     TitleBox.Text = "弹幕姬";
                 }));
             }
+        }
+
+        // Info recieved
+
+        private void BiliLiveInfo_InfoUpdate(BiliLiveInfo.Info info)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                if (info.LiveStatus == 1)
+                    TitleBox.Text = "直播中 - " + info.Title;
+                else
+                    TitleBox.Text = "准备中 - " + info.Title;
+                AreaBox.Text = string.Format("{0} · {1}", info.ParentAreaName, info.AreaName);
+                InfoGrid.ToolTip = Regex.Replace(Regex.Replace(Regex.Unescape(info.Description.Replace("&nbsp;", " ")), @"<[^>]+>|</[^>]+>", string.Empty), @"(\r?\n)+", "\r\n").Trim();
+            }));
+
         }
 
         // Listener recieved
@@ -652,6 +689,20 @@ namespace BiliLiveHelper
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
             RecievedItems.Clear();
+
+            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
+            SaveConfig(status);
+        }
+
+        // Open page
+
+        private void InfoGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            string url = "http://live.bilibili.com/" + RoomIdBox.Text;
+            new Thread(delegate ()
+            {
+                System.Diagnostics.Process.Start(url);
+            }).Start();
         }
     }
 }

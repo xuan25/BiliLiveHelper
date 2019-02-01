@@ -25,7 +25,7 @@ namespace BiliLiveHelper
 
         private TcpClient tcpClient;
         private uint RoomId;
-        public static int TIME_OUT = 10000;
+        private int Timeout;
 
         // About get info
 
@@ -34,7 +34,7 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
-                request.Timeout = TIME_OUT;
+                request.Timeout = Timeout;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
@@ -60,7 +60,7 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
-                request.Timeout = TIME_OUT;
+                request.Timeout = Timeout;
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
@@ -251,11 +251,12 @@ namespace BiliLiveHelper
         /// Constructor 
         /// </summary>
         /// <param name="roomId"></param>
-        public BiliLiveListener(uint roomId)
+        public BiliLiveListener(uint roomId, int timeout)
         {
             heartbeatSenderStarted = false;
             eventListenerStarted = false;
             RoomId = roomId;
+            Timeout = timeout;
         }
 
         /// <summary>
@@ -282,9 +283,12 @@ namespace BiliLiveHelper
         {
             new Thread(delegate ()
             {
-                Delegate[] delegates = ConnectionFailed.GetInvocationList();
-                foreach (Delegate d in delegates)
-                    ConnectionFailed -= (MessageDelegate)d;
+                if (ConnectionFailed != null)
+                {
+                    Delegate[] delegates = ConnectionFailed.GetInvocationList();
+                    foreach (Delegate d in delegates)
+                        ConnectionFailed -= (MessageDelegate)d;
+                }
 
                 StopEventListener();
                 StopHeartbeatSender();
