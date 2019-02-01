@@ -25,6 +25,8 @@ namespace BiliLiveHelper
         private List<BiliLiveJsonParser.Item> RecievedItems;
         private static int TIMEOUT = 10000;
         private ProformanceMonitor proformanceMonitor;
+        private uint ListCapacity = 100;
+        private int RetryWaitting = 5000;
 
         [Serializable]
         private class Status
@@ -54,19 +56,44 @@ namespace BiliLiveHelper
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
 
+            ConnectBtn.Content = "载入中...";
+            ConnectBtn.IsEnabled = false;
+            RoomIdBox.IsEnabled = false;
+
+            ((Storyboard)Resources["ShowWindow"]).Completed += delegate
+            {
+                new Thread(delegate ()
+                {
+                    LoadConfig();
+
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        ConnectBtn.Content = "连接";
+                        ConnectBtn.IsEnabled = true;
+                        RoomIdBox.IsEnabled = true;
+
+                        RoomIdBox.Focus();
+                        RoomIdBox.Select(RoomIdBox.Text.Length, 0);
+
+                        if (IsConnected)
+                            Connect();
+                    }));
+
+                    proformanceMonitor = new ProformanceMonitor();
+                    proformanceMonitor.CpuProformanceRecieved += ProformanceMonitor_CpuProformanceRecieved;
+                    proformanceMonitor.GpuProformanceRecieved += ProformanceMonitor_GpuProformanceRecieved;
+                    bool[] availability = proformanceMonitor.StartMonitoring();
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (!availability[0])
+                            CpuUsage.Visibility = Visibility.Hidden;
+                        if (!availability[1])
+                            GpuUsage.Visibility = Visibility.Hidden;
+                    }));
+                    
+                }).Start();
+            };
             ((Storyboard)Resources["ShowWindow"]).Begin();
-            RoomIdBox.Focus();
-
-            proformanceMonitor = new ProformanceMonitor();
-            proformanceMonitor.CpuProformanceRecieved += ProformanceMonitor_CpuProformanceRecieved;
-            proformanceMonitor.GpuProformanceRecieved += ProformanceMonitor_GpuProformanceRecieved;
-            bool[] availability = proformanceMonitor.StartMonitoring();
-            if (!availability[0])
-                CpuUsage.Visibility = Visibility.Hidden;
-            if (!availability[1])
-                GpuUsage.Visibility = Visibility.Hidden;
-
-            LoadConfig();
         }
 
         private void ProformanceMonitor_CpuProformanceRecieved(uint percentage)
@@ -191,7 +218,7 @@ namespace BiliLiveHelper
                 }
                 if(pingReply != null && pingReply.Status == IPStatus.Success)
                 {
-                    Thread.Sleep(1000);
+                    Thread.Sleep(RetryWaitting);
                     Dispatcher.Invoke(new Action(() =>
                     {
                         AppendMessage("尝试重连", (Color)ColorConverter.ConvertFromString("#FFE61919"));
@@ -207,7 +234,7 @@ namespace BiliLiveHelper
                 else
                 {
                     AppendMessage("网络连接失败", (Color)ColorConverter.ConvertFromString("#FFE61919"));
-                    Thread.Sleep(10000);
+                    Thread.Sleep(RetryWaitting);
                     BiliLiveListener_ConnectionFailed("检测网络");
                 }
             }
@@ -284,6 +311,13 @@ namespace BiliLiveHelper
                         AppendRoomBlock((BiliLiveJsonParser.RoomBlock)item.Content);
                         break;
                 }
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    while (DanmakuBox.Items.Count > ListCapacity)
+                        DanmakuBox.Items.RemoveAt(0);
+                    while (GiftBox.Items.Count > ListCapacity)
+                        GiftBox.Items.RemoveAt(0);
+                }));
             }
         }
 
@@ -313,7 +347,7 @@ namespace BiliLiveHelper
                 content.MouseLeftButtonDown += Content_MouseLeftButtonDown;
                 textBlock.Inlines.Add(content);
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -342,7 +376,7 @@ namespace BiliLiveHelper
                 textBlock.Inlines.Add(new Run() { Text = gift.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
                 textBlock.Inlines.Add(new Run() { Text = " x" + gift.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -369,7 +403,7 @@ namespace BiliLiveHelper
 
                 textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -396,7 +430,7 @@ namespace BiliLiveHelper
 
                 textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -423,7 +457,7 @@ namespace BiliLiveHelper
 
                 textBlock.Inlines.Add(new Run() { Text = " 已被禁言", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")) });
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -448,7 +482,7 @@ namespace BiliLiveHelper
                 content.MouseLeftButtonDown += Content_MouseLeftButtonDown;
                 textBlock.Inlines.Add(content);
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock };
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
                 listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
                 listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
@@ -664,24 +698,19 @@ namespace BiliLiveHelper
 
         private void ApplyStatue(Status status)
         {
-            new Thread(delegate ()
+            IsConnected = status.IsConnected;
+            Dispatcher.Invoke(new Action(() =>
+            {
+                RoomIdBox.Text = status.RoomId;
+            }));
+            foreach (BiliLiveJsonParser.Item i in status.Items)
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    RoomIdBox.Text = status.RoomId;
+                    AppendItem(i);
                 }));
-                foreach (BiliLiveJsonParser.Item i in status.Items)
-                    Dispatcher.Invoke(new Action(() =>
-                    {
-                        AppendItem(i);
-                    }));
-                if (status.IsConnected)
-                    Dispatcher.Invoke(new Action(() =>
-                    {
-                        Connect();
-                    }));
-            }).Start();
-            
+                Thread.Sleep(0);
+            }
         }
 
         // Clear
