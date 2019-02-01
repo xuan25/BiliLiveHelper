@@ -107,7 +107,8 @@ namespace BiliLiveHelper
                 foreach (Delegate d in delegates)
                     InfoUpdate -= (InfoUpdateDel)d;
             }
-            InfoListenerThread.Abort();
+            if(InfoListenerThread != null)
+                InfoListenerThread.Abort();
         }
     }
 }

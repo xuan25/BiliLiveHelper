@@ -23,7 +23,8 @@ namespace BiliLiveHelper
         private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
-        public static int TIMEOUT = 10000;
+        private static int TIMEOUT = 10000;
+        private ProformanceMonitor proformanceMonitor;
 
         [Serializable]
         private class Status
@@ -48,7 +49,6 @@ namespace BiliLiveHelper
         }
 
         // About startup
-
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
             DanmakuBox.Items.Clear();
@@ -57,7 +57,7 @@ namespace BiliLiveHelper
             ((Storyboard)Resources["ShowWindow"]).Begin();
             RoomIdBox.Focus();
 
-            ProformanceMonitor proformanceMonitor = new ProformanceMonitor();
+            proformanceMonitor = new ProformanceMonitor();
             proformanceMonitor.CpuProformanceRecieved += ProformanceMonitor_CpuProformanceRecieved;
             proformanceMonitor.GpuProformanceRecieved += ProformanceMonitor_GpuProformanceRecieved;
             bool[] availability = proformanceMonitor.StartMonitoring();
@@ -565,6 +565,7 @@ namespace BiliLiveHelper
                 if (match.Success)
                 {
                     ((TextBox)sender).Text = match.Value;
+                    ((TextBox)sender).Select(match.Value.Length, 0);
                 }
                 e.CancelCommand();
             }
@@ -619,6 +620,7 @@ namespace BiliLiveHelper
                 Disconnect();
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
+                proformanceMonitor.StopMonitoring();
                 SaveConfig(status);
                 Environment.Exit(0);
             };
