@@ -43,11 +43,30 @@ namespace BiliLiveHelper
             }
         }
 
+        [Serializable]
+        private class Config
+        {
+            public double Left;
+            public double Top;
+            public double Width;
+            public double Height;
+
+            public Config(double left, double top, double width, double height)
+            {
+                Left = left;
+                Top = top;
+                Width = width;
+                Height = height;
+            }
+        }
+
         public MainWindow()
         {
             InitializeComponent();
             IsConnected = false;
             RecievedItems = new List<BiliLiveJsonParser.Item>();
+
+            LoadConfig();
         }
 
         // About startup
@@ -64,7 +83,7 @@ namespace BiliLiveHelper
             {
                 new Thread(delegate ()
                 {
-                    LoadConfig();
+                    LoadStatus();
 
                     Dispatcher.Invoke(new Action(() =>
                     {
@@ -649,12 +668,14 @@ namespace BiliLiveHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height);
             Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
             if (IsConnected)
                 Disconnect();
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
                 proformanceMonitor.StopMonitoring();
+                SaveConfig(config);
                 SaveConfig(status);
                 Environment.Exit(0);
             };
@@ -662,21 +683,65 @@ namespace BiliLiveHelper
             e.Cancel = true;
         }
 
-        private void SaveConfig(Status status)
+        // SL
+
+        private void SaveConfig(Config config)
         {
-            string fileDirectory = System.IO.Path.GetTempPath() + "BiliLiveHelper\\";
+            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
                 Directory.CreateDirectory(fileDirectory);
-            string fileName = "Config";
-            Stream stream = new FileStream(fileDirectory + fileName + ".dat", FileMode.Create, FileAccess.ReadWrite);
+            string fileName = "Config.dat";
+            Stream stream = new FileStream(fileDirectory + fileName, FileMode.Create, FileAccess.ReadWrite);
             BinaryFormatter binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(stream, status);
+            binaryFormatter.Serialize(stream, config);
             stream.Close();
         }
 
         private bool LoadConfig()
         {
-            string path = System.IO.Path.GetTempPath() + "BiliLiveHelper\\Config.dat";
+            string path = Path.GetTempPath() + "BiliLiveHelper\\Config.dat";
+            if (!File.Exists(path))
+            {
+                return false;
+            }
+            try
+            {
+                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
+                BinaryFormatter binaryFormatter = new BinaryFormatter();
+                Config config = (Config)binaryFormatter.Deserialize(stream);
+                stream.Close();
+                ApplyConfig(config);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        private void ApplyConfig(Config config)
+        {
+            this.Top = config.Top;
+            this.Left = config.Left;
+            this.Height = config.Height;
+            this.Width = config.Width;
+        }
+
+        private void SaveConfig(Status status)
+        {
+            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
+            if (!Directory.Exists(fileDirectory))
+                Directory.CreateDirectory(fileDirectory);
+            string fileName = "Status.dat";
+            Stream stream = new FileStream(fileDirectory + fileName, FileMode.Create, FileAccess.ReadWrite);
+            BinaryFormatter binaryFormatter = new BinaryFormatter();
+            binaryFormatter.Serialize(stream, status);
+            stream.Close();
+        }
+
+        private bool LoadStatus()
+        {
+            string path = Path.GetTempPath() + "BiliLiveHelper\\Status.dat";
             if (!File.Exists(path))
             {
                 return false;
