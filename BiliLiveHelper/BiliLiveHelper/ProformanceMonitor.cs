@@ -30,9 +30,17 @@ namespace BiliLiveHelper
 
         public void StopMonitoring()
         {
-            cpuMonitoringThread.Abort();
-            cpuMonitoringThread.Join();
-            gpuMonitoringProcess.Kill();
+            try
+            {
+                if (cpuMonitoringThread != null)
+                    cpuMonitoringThread.Abort();
+                if (gpuMonitoringProcess != null)
+                    gpuMonitoringProcess.Kill();
+            }
+            catch (Exception)
+            {
+                
+            }
         }
 
         Thread cpuMonitoringThread;
