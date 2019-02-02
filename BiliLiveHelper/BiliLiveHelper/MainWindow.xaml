@@ -41,7 +41,14 @@
                             BeginTime="00:00:00.500" From="1" To="0"
                             Duration="00:00:01.000"/>
         </Storyboard>
+        <RoutedUICommand x:Key="OpenDebugWindow" Text="OpenDebugWindow"/>
     </Window.Resources>
+    <Window.InputBindings>
+        <KeyBinding Gesture="Ctrl+P" Command="{StaticResource OpenDebugWindow}"/>
+    </Window.InputBindings>
+    <Window.CommandBindings>
+        <CommandBinding Command="{StaticResource OpenDebugWindow}" CanExecute="OpenDebugWindow"/>
+    </Window.CommandBindings>
     <Window.Effect>
         <DropShadowEffect x:Name="DropShadow" ShadowDepth="1" BlurRadius="16" Direction="270" Opacity="0.5" Color="#FF211613"/>
     </Window.Effect>

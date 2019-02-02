@@ -298,6 +298,10 @@ namespace BiliLiveHelper
         private void BiliLiveListener_JsonRecieved(string message)
         {
             Log += message + "\r\n";
+            if (debugWindow != null)
+            {
+                debugWindow.AppendLog(message);
+            }
             BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(message);
             AppendItem(item);
         }
@@ -889,9 +893,18 @@ namespace BiliLiveHelper
             }).Start();
         }
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        // Debug window
+
+        private DebugWindow debugWindow;
+        private void OpenDebugWindow(object sender, CanExecuteRoutedEventArgs e)
         {
-            BiliLiveListener_JsonRecieved("{\"cmd\":\"GUARD_BUY\",\"data\":{\"uid\":15347009,\"username\":\"\u9a6c\u54e5\u771f\u628a\u786c\u5e01\u6211\u63e3\u515c\u4e86\",\"guard_level\":3,\"num\":1,\"price\":198000,\"gift_id\":10003,\"gift_name\":\"\u8230\u957f\",\"start_time\":1549131942,\"end_time\":1549131942}}");
+            if (debugWindow == null)
+            {
+                debugWindow = new DebugWindow(Log);
+                debugWindow.MessageSent += delegate (string msg) { BiliLiveListener_JsonRecieved(msg); };
+                debugWindow.Closing += delegate { debugWindow = null; };
+                debugWindow.Show();
+            }
         }
     }
 }
