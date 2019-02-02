@@ -234,6 +234,13 @@
                         <Run Text="x100" Foreground="#FF64D2F0"/>
                     </TextBlock>
                 </ListBoxItem>
+                <ListBoxItem>
+                    <TextBlock>
+                        <Run Text="用户名" Foreground="#FF64D2F0"/>
+                        <Run Text="开通了" Foreground="#FFCBDAF7"/>
+                        <Run Text="舰长" Foreground="#FFFA82BE"/>
+                    </TextBlock>
+                </ListBoxItem>
             </ListBox>
             <TextBlock x:Name="RhythmStormBox" Grid.Row="1" Opacity="0" Margin="3" Padding="4,1" FontSize="16" Background="#FFE6903E" VerticalAlignment="Top" HorizontalAlignment="Stretch" TextWrapping="Wrap">
                 <Run x:Name="RhythmStormTextBox" Text="节奏风暴" Foreground="#FF1F87C1"/>

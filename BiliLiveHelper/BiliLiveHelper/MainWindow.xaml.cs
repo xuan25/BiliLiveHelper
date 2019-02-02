@@ -25,7 +25,7 @@ namespace BiliLiveHelper
         private List<BiliLiveJsonParser.Item> RecievedItems;
         private static int TIMEOUT = 10000;
         private ProformanceMonitor proformanceMonitor;
-        private uint ListCapacity = 100;
+        private uint ListCapacity = 1000;
         private int RetryWaitting = 5000;
 
         public string Log;
@@ -316,7 +316,7 @@ namespace BiliLiveHelper
         {
             if (item != null)
             {
-                if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type == 2))
+                if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
                 {
                     RecievedItems.Add(item);
                     while (RecievedItems.Count > ListCapacity)
@@ -340,20 +340,23 @@ namespace BiliLiveHelper
                     case BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG:
                         AppendRoomBlock((BiliLiveJsonParser.RoomBlock)item.Content);
                         break;
+                    case BiliLiveJsonParser.Item.Types.GUARD_BUY:
+                        AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item.Content);
+                        break;
                 }
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    while (DanmakuBox.Items.Count > ListCapacity)
-                        DanmakuBox.Items.RemoveAt(0);
-                    while (GiftBox.Items.Count > ListCapacity)
-                        GiftBox.Items.RemoveAt(0);
-                }));
+                //Dispatcher.Invoke(new Action(() =>
+                //{
+                //    while (DanmakuBox.Items.Count > ListCapacity)
+                //        DanmakuBox.Items.RemoveAt(0);
+                //    while (GiftBox.Items.Count > ListCapacity)
+                //        GiftBox.Items.RemoveAt(0);
+                //}));
             }
         }
 
         private void AppendDanmaku(BiliLiveJsonParser.Danmaku danmaku)
         {
-            if(danmaku.Type == 2)
+            if(danmaku.Type != 0)
             {
                 AppendRhythmStorm(danmaku);
                 return;
@@ -401,7 +404,7 @@ namespace BiliLiveHelper
             Dispatcher.Invoke(new Action(() =>
             {
                 RhythmStormTextBox.Text = danmaku.Content;
-                RhythmStormCountBox.Text = "x" + rhythmStormCount;
+                RhythmStormCountBox.Text = " x" + rhythmStormCount;
                 ((Storyboard)Resources["ShowRhythmStorm"]).Begin();
             }));
             lastRhythmTime = DateTime.Now;
@@ -531,6 +534,34 @@ namespace BiliLiveHelper
                 listBoxItem.Loaded += ListBoxItem_Loaded;
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
+            }));
+        }
+
+        private void AppendGuardBuy(BiliLiveJsonParser.GuardBuy guardBuy)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+
+                Run user = new Run()
+                {
+                    Text = guardBuy.User.Name,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")),
+                    Tag = guardBuy.User.Id
+                };
+                user.MouseLeftButtonDown += User_MouseLeftButtonDown;
+                textBlock.Inlines.Add(user);
+
+                textBlock.Inlines.Add(new Run() { Text = " 开通了 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = guardBuy.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
+
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
+                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
+                listBoxItem.Loaded += ListBoxItem_Loaded;
+                GiftBox.Items.Add(listBoxItem);
+                RefreshScroll(GiftBox);
             }));
         }
 
@@ -856,6 +887,11 @@ namespace BiliLiveHelper
             {
                 System.Diagnostics.Process.Start(url);
             }).Start();
+        }
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            BiliLiveListener_JsonRecieved("{\"cmd\":\"GUARD_BUY\",\"data\":{\"uid\":15347009,\"username\":\"\u9a6c\u54e5\u771f\u628a\u786c\u5e01\u6211\u63e3\u515c\u4e86\",\"guard_level\":3,\"num\":1,\"price\":198000,\"gift_id\":10003,\"gift_name\":\"\u8230\u957f\",\"start_time\":1549131942,\"end_time\":1549131942}}");
         }
     }
 }
