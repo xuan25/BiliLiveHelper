@@ -8,7 +8,7 @@ namespace BiliLiveHelper
         [Serializable]
         public class Item
         {
-            public enum Types { DANMU_MSG, SEND_GIFT, WELCOME, WELCOME_GUARD, ENTRY_EFFECT, SYS_MSG, ROOM_BLOCK_MSG, COMBO_SEND, COMBO_END, ROOM_RANK }
+            public enum Types { DANMU_MSG, SEND_GIFT, WELCOME, WELCOME_GUARD, ENTRY_EFFECT, SYS_MSG, ROOM_BLOCK_MSG, COMBO_SEND, COMBO_END, ROOM_RANK, TV_START, NOTICE_MSG }
             public Types Type;
             public object Content;
 
@@ -37,11 +37,13 @@ namespace BiliLiveHelper
         {
             public User Sender;
             public string Content;
+            public uint Type;
 
-            public Danmaku(User sender, string content)
+            public Danmaku(User sender, string content, string type)
             {
                 Sender = sender;
                 Content = content;
+                Type = uint.Parse(type);
             }
         }
 
@@ -113,9 +115,9 @@ namespace BiliLiveHelper
                 switch (type)
                 {
                     case Item.Types.DANMU_MSG:
-                        match = Regex.Match(match.Groups["Info"].Value, "^\"info\":\\[\\[.*?\\],\"(?<Content>.*?)\",\\[(?<Id>[0-9]+),\"(?<Name>.+?)\".*?].*?\\]$");
+                        match = Regex.Match(match.Groups["Info"].Value, "^\"info\":\\[\\[[0-9]+,[0-9]+,[0-9]+,[0-9]+,[0-9]+,-?[0-9]+,[0-9]+,\"[0-9a-z]+\",[0-9]+,(?<Type>[0-9]+),[0-9]+\\],\"(?<Content>.*?)\",\\[(?<Id>[0-9]+),\"(?<Name>.+?)\".*?].*?\\]$");
                         if (match.Success)
-                            content = new Danmaku(new User(match.Groups["Id"].Value, Regex.Unescape(match.Groups["Name"].Value)), Regex.Unescape(match.Groups["Content"].Value));
+                            content = new Danmaku(new User(match.Groups["Id"].Value, Regex.Unescape(match.Groups["Name"].Value)), Regex.Unescape(match.Groups["Content"].Value), match.Groups["Type"].Value);
                         break;
                     case Item.Types.SEND_GIFT:
                         match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"giftName\":\"(?<GiftName>.*?)\",\"num\":(?<Number>[0-9]+),\"uname\":\"(?<UserName>.*?)\",\"face\":\".*?\",\"guard_level\":[0-9]*,\"rcost\":[0-9]*,\"uid\":(?<UserId>[0-9]+).*?}$");

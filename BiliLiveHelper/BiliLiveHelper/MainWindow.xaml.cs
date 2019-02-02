@@ -68,6 +68,7 @@ namespace BiliLiveHelper
             IsConnected = false;
             RecievedItems = new List<BiliLiveJsonParser.Item>();
             Log = string.Empty;
+            rhythmStormCount = 0;
 
             LoadConfig();
         }
@@ -315,7 +316,13 @@ namespace BiliLiveHelper
         {
             if (item != null)
             {
-                RecievedItems.Add(item);
+                if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type == 2))
+                {
+                    RecievedItems.Add(item);
+                    while (RecievedItems.Count > ListCapacity)
+                        RecievedItems.RemoveAt(0);
+                }
+                    
                 switch (item.Type)
                 {
                     case BiliLiveJsonParser.Item.Types.DANMU_MSG:
@@ -346,6 +353,11 @@ namespace BiliLiveHelper
 
         private void AppendDanmaku(BiliLiveJsonParser.Danmaku danmaku)
         {
+            if(danmaku.Type == 2)
+            {
+                AppendRhythmStorm(danmaku);
+                return;
+            }
             Dispatcher.Invoke(new Action(() =>
             {
                 TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
@@ -378,6 +390,27 @@ namespace BiliLiveHelper
                 DanmakuBox.Items.Add(listBoxItem);
                 RefreshScroll(DanmakuBox);
             }));
+        }
+
+        private uint rhythmStormCount;
+        private Thread rhythmStormThread;
+        private void AppendRhythmStorm(BiliLiveJsonParser.Danmaku danmaku)
+        {
+            rhythmStormCount++;
+            Dispatcher.Invoke(new Action(() =>
+            {
+                RhythmStormTextBox.Text = danmaku.Content;
+                RhythmStormCountBox.Text = "x" + rhythmStormCount;
+                ((Storyboard)Resources["ShowRhythmStorm"]).Begin();
+            }));
+            if (rhythmStormThread != null)
+                rhythmStormThread.Abort();
+            rhythmStormThread = new Thread(delegate ()
+            {
+                Thread.Sleep(10 * 1000);
+                rhythmStormCount = 0;
+            });
+            rhythmStormThread.Start();
         }
 
         private void AppendGift(BiliLiveJsonParser.Gift gift)
@@ -678,11 +711,15 @@ namespace BiliLiveHelper
                 Disconnect();
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
-                proformanceMonitor.StopMonitoring();
-                SaveLog(Log);
-                SaveConfig(config);
-                SaveStatus(status);
-                Environment.Exit(0);
+                new Thread(delegate ()
+                {
+                    Thread.Sleep(0);
+                    proformanceMonitor.StopMonitoring();
+                    SaveLog(Log);
+                    SaveConfig(config);
+                    SaveStatus(status);
+                    Environment.Exit(0);
+                }).Start();
             };
             ((Storyboard)Resources["HideWindow"]).Begin();
             e.Cancel = true;

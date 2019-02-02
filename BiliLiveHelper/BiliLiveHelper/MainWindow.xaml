@@ -31,6 +31,16 @@
                             BeginTime="00:00:00.000" To="#999999"
                             Duration="00:00:00.200"/>
         </Storyboard>
+        <Storyboard x:Key="ShowRhythmStorm">
+            <DoubleAnimation Storyboard.TargetName="RhythmStormBox" 
+                            Storyboard.TargetProperty="Opacity"
+                            BeginTime="00:00:00.000" To="1"
+                            Duration="00:00:00.000"/>
+            <DoubleAnimation Storyboard.TargetName="RhythmStormBox" 
+                            Storyboard.TargetProperty="Opacity"
+                            BeginTime="00:00:00.500" From="1" To="0"
+                            Duration="00:00:01.000"/>
+        </Storyboard>
     </Window.Resources>
     <Window.Effect>
         <DropShadowEffect x:Name="DropShadow" ShadowDepth="1" BlurRadius="16" Direction="270" Opacity="0.5" Color="#FF211613"/>
@@ -215,7 +225,7 @@
                     </LinearGradientBrush>
                 </Rectangle.Fill>
             </Rectangle>
-            <ListBox Grid.Row="1" x:Name="GiftBox" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled"  ScrollViewer.CanContentScroll="False">
+            <ListBox Grid.Row="1" x:Name="GiftBox" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.VerticalScrollBarVisibility="Hidden" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
                 <ListBoxItem>
                     <TextBlock>
                         <Run Text="赠送者" Foreground="#FFC8C83C"/>
@@ -225,6 +235,10 @@
                     </TextBlock>
                 </ListBoxItem>
             </ListBox>
+            <TextBlock x:Name="RhythmStormBox" Grid.Row="1" Opacity="0" Margin="3" Padding="4,1" FontSize="16" Background="#FFE6903E" VerticalAlignment="Top" HorizontalAlignment="Stretch" TextWrapping="Wrap">
+                <Run x:Name="RhythmStormTextBox" Text="节奏风暴" Foreground="#FF1F87C1"/>
+                <Run x:Name="RhythmStormCountBox" Text="x100" Foreground="#FFD6406A"/>
+            </TextBlock>
             <Rectangle Grid.Row="1" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
                 <Rectangle.Fill>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
