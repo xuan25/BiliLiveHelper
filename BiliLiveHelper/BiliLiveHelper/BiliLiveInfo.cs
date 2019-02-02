@@ -47,12 +47,12 @@ namespace BiliLiveHelper
                 Match match = Regex.Match(ret, "(" +
                     ".*\"attention\":(?<Attention>[0-9]+)" +
                     "|.*\"online\":(?<Online>[0-9]+)" +
-                    "|.*\"description\":\"(?<Description>.*?[^\\\\])\"" +
+                    "|.*\"description\":\"(?<Description>.*?[^\\\\]?)\"" +
                     "|.*\"live_status\":(?<LiveStatus>[0-9]+)" +
-                    "|.*\"parent_area_name\":\"(?<ParentAreaName>.*?[^\\\\])\"" +
-                    "|.*\"title\":\"(?<Title>.*?[^\\\\])\"" +
-                    "|.*\"tags\":\"(?<Tags>.*?[^\\\\])\"" +
-                    "|.*\"area_name\":\"(?<AreaName>.*?[^\\\\])\"" +
+                    "|.*\"parent_area_name\":\"(?<ParentAreaName>.*?[^\\\\]?)\"" +
+                    "|.*\"title\":\"(?<Title>.*?[^\\\\]?)\"" +
+                    "|.*\"tags\":\"(?<Tags>.*?[^\\\\]?)\"" +
+                    "|.*\"area_name\":\"(?<AreaName>.*?[^\\\\]?)\"" +
                     ")+");
                 if (match.Success)
                     return new Info()

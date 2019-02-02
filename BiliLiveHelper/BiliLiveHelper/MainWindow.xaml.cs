@@ -28,7 +28,7 @@ namespace BiliLiveHelper
         private uint ListCapacity = 100;
         private int RetryWaitting = 5000;
 
-        private string Log;
+        public string Log;
 
         [Serializable]
         private class Status
@@ -394,6 +394,7 @@ namespace BiliLiveHelper
 
         private uint rhythmStormCount;
         private Thread rhythmStormThread;
+        private DateTime lastRhythmTime;
         private void AppendRhythmStorm(BiliLiveJsonParser.Danmaku danmaku)
         {
             rhythmStormCount++;
@@ -403,14 +404,24 @@ namespace BiliLiveHelper
                 RhythmStormCountBox.Text = "x" + rhythmStormCount;
                 ((Storyboard)Resources["ShowRhythmStorm"]).Begin();
             }));
-            if (rhythmStormThread != null)
-                rhythmStormThread.Abort();
-            rhythmStormThread = new Thread(delegate ()
+            lastRhythmTime = DateTime.Now;
+            if (rhythmStormThread == null)
             {
-                Thread.Sleep(10 * 1000);
-                rhythmStormCount = 0;
-            });
-            rhythmStormThread.Start();
+                rhythmStormThread = new Thread(delegate ()
+                {
+                    while (true)
+                    {
+                        Thread.Sleep(1000);
+                        if (DateTime.Now > lastRhythmTime.AddSeconds(10))
+                        {
+                            rhythmStormCount = 0;
+                            rhythmStormThread = null;
+                            break;
+                        }
+                    }
+                });
+                rhythmStormThread.Start();
+            }
         }
 
         private void AppendGift(BiliLiveJsonParser.Gift gift)
@@ -715,7 +726,6 @@ namespace BiliLiveHelper
                 {
                     Thread.Sleep(0);
                     proformanceMonitor.StopMonitoring();
-                    SaveLog(Log);
                     SaveConfig(config);
                     SaveStatus(status);
                     Environment.Exit(0);
@@ -823,35 +833,6 @@ namespace BiliLiveHelper
                     AppendItem(i);
                 }));
                 Thread.Sleep(0);
-            }
-        }
-
-        private void SaveLog(string log)
-        {
-            string folder = Path.GetTempPath() + "BiliLiveHelper\\Logs\\";
-            Directory.CreateDirectory(folder);
-            string time = DateTime.Now.ToString().Replace(':', '-').Replace('/', '-');
-
-            int i = 0;
-            while (i < 100)
-            {
-                string filename = time;
-                if (i != 0)
-                {
-                    filename = filename + " (" + i + ")";
-                }
-                if (!File.Exists(folder + filename + ".log"))
-                {
-                    try
-                    {
-                        StreamWriter streamWriter = new StreamWriter(folder + filename + ".log", false);
-                        streamWriter.Write(log);
-                        streamWriter.Close();
-                        break;
-                    }
-                    catch { }
-                }
-                i++;
             }
         }
 
