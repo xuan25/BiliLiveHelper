@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:BiliLiveHelper"
         mc:Ignorable="d"
-        x:Name="Main" Title="{Binding ElementName=TitleBox, Path=Text}" Height="440" Width="260" MinHeight="250" MinWidth="260" BorderThickness="16" Closing="Window_Closing" WindowStyle="None" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Background="#99161616" Foreground="White" Topmost="True" ShowInTaskbar="False" Loaded="Main_Loaded">
+        x:Name="Main" Title="{Binding ElementName=TitleBox, Path=Text}" Height="440" Width="260" MinHeight="250" MinWidth="260" Closing="Window_Closing" WindowStyle="None" AllowsTransparency="True" ResizeMode="CanResizeWithGrip" Background="#99161616" Foreground="White" Topmost="True" ShowInTaskbar="False" Loaded="Main_Loaded">
     <Window.Resources>
         <Storyboard x:Key="ShowWindow">
             <DoubleAnimation Storyboard.TargetName="Main" 
@@ -49,9 +49,6 @@
     <Window.CommandBindings>
         <CommandBinding Command="{StaticResource OpenDebugWindow}" CanExecute="OpenDebugWindow"/>
     </Window.CommandBindings>
-    <Window.Effect>
-        <DropShadowEffect x:Name="DropShadow" ShadowDepth="1" BlurRadius="16" Direction="270" Opacity="0.5" Color="#FF211613"/>
-    </Window.Effect>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="30"/>
