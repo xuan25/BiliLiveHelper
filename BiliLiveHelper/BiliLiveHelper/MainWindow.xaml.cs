@@ -903,17 +903,6 @@ namespace BiliLiveHelper
             }
         }
 
-        // Clear
-
-        private void ClearBtn_Click(object sender, RoutedEventArgs e)
-        {
-            DanmakuBox.Items.Clear();
-            GiftBox.Items.Clear();
-            RecievedItems.Clear();
-
-            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
-        }
-
         // Open page
 
         private void InfoGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)

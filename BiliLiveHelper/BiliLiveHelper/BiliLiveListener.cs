@@ -231,7 +231,7 @@ namespace BiliLiveHelper
 
                         // Read message
                         int messageLength = datalength - 16;
-                        if(messageLength > (double)1024*1024 / sizeof(byte))
+                        if(messageLength > (double)1024 * 1024 * 1024 / sizeof(byte))
                         {
                             ConnectionFailed("数据包出错");
                             Disconnect();
