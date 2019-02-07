@@ -198,11 +198,10 @@ namespace BiliLiveHelper
 
             
             biliLiveInfo = new BiliLiveInfo(roomId);
-            BiliLiveInfo.Info info = biliLiveInfo.GetInfo(TIMEOUT);
-            if (info != null)
-            {
-                BiliLiveInfo_InfoUpdate(info);
-            }
+            BiliLiveInfo.Info info = null;
+            while (info == null)
+                info = biliLiveInfo.GetInfo(TIMEOUT);
+            BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
             biliLiveInfo.StartInfoListener(TIMEOUT, TIMEOUT);
 

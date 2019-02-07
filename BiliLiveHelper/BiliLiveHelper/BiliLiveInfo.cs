@@ -88,7 +88,7 @@ namespace BiliLiveHelper
                 {
                     Thread.Sleep(interval);
                     Info info = GetInfo(timeout);
-                    if (info.GetHashCode() != CurrentInfo.GetHashCode())
+                    if (info != null && info.GetHashCode() != CurrentInfo.GetHashCode())
                     {
                         CurrentInfo = info;
                         InfoUpdate?.Invoke(CurrentInfo);

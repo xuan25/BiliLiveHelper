@@ -124,8 +124,18 @@ namespace BiliLiveHelper
             }
             catch (SocketException)
             {
-                Disconnect();
                 ConnectionFailed("连接请求发送失败");
+                Disconnect();
+            }
+            catch (InvalidOperationException)
+            {
+                ConnectionFailed("连接请求发送失败");
+                Disconnect();
+            }
+            catch (IOException)
+            {
+                ConnectionFailed("连接请求发送失败");
+                Disconnect();
             }
             return tcpClient;
         }
@@ -155,13 +165,18 @@ namespace BiliLiveHelper
                     }
                     catch (SocketException)
                     {
-                        Disconnect();
                         ConnectionFailed("心跳包发送失败");
+                        Disconnect();
                     }
                     catch (InvalidOperationException)
                     {
-                        Disconnect();
                         ConnectionFailed("心跳包发送失败");
+                        Disconnect();
+                    }
+                    catch (IOException)
+                    {
+                        ConnectionFailed("心跳包发送失败");
+                        Disconnect();
                     }
                     Thread.Sleep(30 * 1000);
                 }
@@ -199,6 +214,7 @@ namespace BiliLiveHelper
                         // Check data length
                         if (datalength < 16)
                         {
+                            ConnectionFailed("数据包出错");
                             Disconnect();
                             break;
                         }
@@ -215,6 +231,11 @@ namespace BiliLiveHelper
 
                         // Read message
                         int messageLength = datalength - 16;
+                        if(messageLength > (double)1024*1024 / sizeof(byte))
+                        {
+                            ConnectionFailed("数据包出错");
+                            Disconnect();
+                        }
                         byte[] messageBuffer = new byte[messageLength];
                         networkStream.Read(messageBuffer, 0, messageLength);
 
@@ -244,13 +265,13 @@ namespace BiliLiveHelper
                     }
                     catch (SocketException)
                     {
-                        Disconnect();
                         ConnectionFailed("数据读取失败");
+                        Disconnect();
                     }
                     catch (IOException)
                     {
-                        Disconnect();
                         ConnectionFailed("数据读取失败");
+                        Disconnect();
                     }
                 }
             });
