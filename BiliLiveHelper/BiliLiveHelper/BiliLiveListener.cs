@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using System.Net.NetworkInformation;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -47,7 +48,7 @@ namespace BiliLiveHelper
             }
             catch (WebException)
             {
-                ConnectionFailed("未能找到直播间");
+                ConnectionFailed?.Invoke("未能找到直播间");
                 return 0;
             }
             
@@ -80,7 +81,7 @@ namespace BiliLiveHelper
             }
             catch (WebException)
             {
-                ConnectionFailed("直播间信息获取失败");
+                ConnectionFailed?.Invoke("直播间信息获取失败");
                 return null;
             }
             
@@ -130,17 +131,17 @@ namespace BiliLiveHelper
             }
             catch (SocketException)
             {
-                ConnectionFailed("连接请求发送失败");
+                ConnectionFailed?.Invoke("连接请求发送失败");
                 Disconnect();
             }
             catch (InvalidOperationException)
             {
-                ConnectionFailed("连接请求发送失败");
+                ConnectionFailed?.Invoke("连接请求发送失败");
                 Disconnect();
             }
             catch (IOException)
             {
-                ConnectionFailed("连接请求发送失败");
+                ConnectionFailed?.Invoke("连接请求发送失败");
                 Disconnect();
             }
             return tcpClient;
@@ -171,17 +172,17 @@ namespace BiliLiveHelper
                     }
                     catch (SocketException)
                     {
-                        ConnectionFailed("心跳包发送失败");
+                        ConnectionFailed?.Invoke("心跳包发送失败");
                         Disconnect();
                     }
                     catch (InvalidOperationException)
                     {
-                        ConnectionFailed("心跳包发送失败");
+                        ConnectionFailed?.Invoke("心跳包发送失败");
                         Disconnect();
                     }
                     catch (IOException)
                     {
-                        ConnectionFailed("心跳包发送失败");
+                        ConnectionFailed?.Invoke("心跳包发送失败");
                         Disconnect();
                     }
                     Thread.Sleep(30 * 1000);
@@ -220,7 +221,7 @@ namespace BiliLiveHelper
                         // Check data length
                         if (datalength < 16)
                         {
-                            ConnectionFailed("数据包出错");
+                            ConnectionFailed?.Invoke("数据包出错");
                             Disconnect();
                             break;
                         }
@@ -239,7 +240,7 @@ namespace BiliLiveHelper
                         int messageLength = datalength - 16;
                         if(messageLength > (double)1024 * 1024 * 1024 / sizeof(byte))
                         {
-                            ConnectionFailed("数据包出错");
+                            ConnectionFailed?.Invoke("数据包出错");
                             Disconnect();
                         }
                         byte[] messageBuffer = new byte[messageLength];
@@ -271,12 +272,12 @@ namespace BiliLiveHelper
                     }
                     catch (SocketException)
                     {
-                        ConnectionFailed("数据读取失败");
+                        ConnectionFailed?.Invoke("数据读取失败");
                         Disconnect();
                     }
                     catch (IOException)
                     {
-                        ConnectionFailed("数据读取失败");
+                        ConnectionFailed?.Invoke("数据读取失败");
                         Disconnect();
                     }
                 }
@@ -303,6 +304,20 @@ namespace BiliLiveHelper
         {
             new Thread(delegate ()
             {
+                PingReply pingReply = null;
+                try
+                {
+                    pingReply = new Ping().Send("live.bilibili.com", timeout);
+                }
+                catch (Exception)
+                {
+
+                }
+                if (pingReply == null || pingReply.Status != IPStatus.Success)
+                {
+                    ConnectionFailed?.Invoke("网络连接失败");
+                    return;
+                }
                 Dictionary<string, string> roomInfo = GetRoomInfo(roomId);
                 if(roomInfo == null)
                     return;

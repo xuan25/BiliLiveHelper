@@ -102,15 +102,8 @@ namespace BiliLiveHelper
 
                     Dispatcher.Invoke(new Action(() =>
                     {
-                        ConnectBtn.Content = "连接";
-                        ConnectBtn.IsEnabled = true;
-                        RoomIdBox.IsEnabled = true;
-
                         RoomIdBox.Focus();
                         RoomIdBox.Select(RoomIdBox.Text.Length, 0);
-
-                        if (IsConnected)
-                            Connect();
                     }));
 
                     proformanceMonitor = new ProformanceMonitor();
@@ -985,7 +978,7 @@ namespace BiliLiveHelper
 
         private void ApplyStatue(Status status)
         {
-            IsConnected = status.IsConnected;
+            //IsConnected = status.IsConnected;
             Dispatcher.Invoke(new Action(() =>
             {
                 RoomIdBox.Text = status.RoomId;
@@ -998,6 +991,17 @@ namespace BiliLiveHelper
                 }));
                 Thread.Sleep(0);
             }
+            Dispatcher.Invoke(new Action(() =>
+            {
+                if (status.IsConnected)
+                    Connect();
+                else
+                {
+                    ConnectBtn.Content = "连接";
+                    ConnectBtn.IsEnabled = true;
+                    RoomIdBox.IsEnabled = true;
+                }
+            }));
         }
 
         // Open page
