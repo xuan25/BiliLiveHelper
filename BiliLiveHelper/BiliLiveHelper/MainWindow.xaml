@@ -240,6 +240,15 @@
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
+                        <Run Text="赠送者" Foreground="#FFC8C83C"/>
+                        <Run Text="赠送" Foreground="#FFCBDAF7"/>
+                        <Run Text="物品" Foreground="#FFFA82BE"/>
+                        <Run Text="连击" Foreground="#FFDC8C32"/>
+                        <Run Text="x100" Foreground="#FF64D2F0"/>
+                    </TextBlock>
+                </ListBoxItem>
+                <ListBoxItem>
+                    <TextBlock>
                         <Run Text="用户名" Foreground="#FF64D2F0"/>
                         <Run Text="开通了" Foreground="#FFCBDAF7"/>
                         <Run Text="舰长" Foreground="#FFFA82BE"/>

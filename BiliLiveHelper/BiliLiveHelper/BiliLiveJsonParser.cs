@@ -48,6 +48,21 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
+        public class GiftCombo
+        {
+            public User Sender;
+            public string GiftName;
+            public uint Number;
+
+            public GiftCombo(User sender, string giftName, string number)
+            {
+                Sender = sender;
+                GiftName = giftName;
+                Number = uint.Parse(number);
+            }
+        }
+
+        [Serializable]
         public class Gift
         {
             public User Sender;
@@ -136,6 +151,11 @@ namespace BiliLiveHelper
                         match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"giftName\":\"(?<GiftName>.*?)\",\"num\":(?<Number>[0-9]+),\"uname\":\"(?<Username>.*?)\",\"face\":\".*?\",\"guard_level\":[0-9]+,\"rcost\":[0-9]+,\"uid\":(?<UserId>[0-9]+).*}$");
                         if (match.Success)
                             content = new Gift(new User(match.Groups["UserId"].Value, Regex.Unescape(match.Groups["Username"].Value)), Regex.Unescape(match.Groups["GiftName"].Value), match.Groups["Number"].Value);
+                        break;
+                    case Item.Types.COMBO_END:
+                        match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uname\":\"(?<Username>.*?)\",\"r_uname\":\".*?\",\"combo_num\":(?<Number>[0-9]+),\"price\":[0-9]+,\"gift_name\":\"(?<GiftName>.*?)\",\"gift_id\":[0-9]+,\"start_time\":[0-9]+,\"end_time\":[0-9]+,\"guard_level\":[0-9]+}$");
+                        if (match.Success)
+                            content = new GiftCombo(new User("0", Regex.Unescape(match.Groups["Username"].Value)), Regex.Unescape(match.Groups["GiftName"].Value), match.Groups["Number"].Value);
                         break;
                     case Item.Types.WELCOME:
                         match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uid\":(?<UserId>[0-9]+),\"uname\":\"(?<Username>.*?)\",(\"is_admin\":(true|false)|\"isadmin\":0),\"s?vip\":[0-9]+}(,\"roomid\":[0-9]+)?$");

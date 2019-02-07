@@ -334,6 +334,9 @@ namespace BiliLiveHelper
                     case BiliLiveJsonParser.Item.Types.SEND_GIFT:
                         AppendGift((BiliLiveJsonParser.Gift)item.Content);
                         break;
+                    case BiliLiveJsonParser.Item.Types.COMBO_END:
+                        AppendGiftCombo((BiliLiveJsonParser.GiftCombo)item.Content);
+                        break;
                     case BiliLiveJsonParser.Item.Types.WELCOME:
                         AppendWelcome((BiliLiveJsonParser.Welcome)item.Content);
                         break;
@@ -448,6 +451,36 @@ namespace BiliLiveHelper
                 textBlock.Inlines.Add(new Run() { Text = " 赠送 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
                 textBlock.Inlines.Add(new Run() { Text = gift.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
                 textBlock.Inlines.Add(new Run() { Text = " x" + gift.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
+
+                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
+                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
+                listBoxItem.Loaded += ListBoxItem_Loaded;
+                GiftBox.Items.Add(listBoxItem);
+                RefreshScroll(GiftBox);
+            }));
+        }
+
+        private void AppendGiftCombo(BiliLiveJsonParser.GiftCombo giftCombo)
+        {
+            Dispatcher.Invoke(new Action(() =>
+            {
+                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
+
+                Run user = new Run()
+                {
+                    Text = giftCombo.Sender.Name,
+                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC8C83C")),
+                    Tag = giftCombo.Sender.Id
+                };
+                //user.MouseLeftButtonDown += User_MouseLeftButtonDown;
+                textBlock.Inlines.Add(user);
+
+                textBlock.Inlines.Add(new Run() { Text = " 赠送 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = giftCombo.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
+                textBlock.Inlines.Add(new Run() { Text = " 连击", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC8C32")) });
+                textBlock.Inlines.Add(new Run() { Text = " x" + giftCombo.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
