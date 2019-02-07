@@ -23,10 +23,11 @@ namespace BiliLiveHelper
         private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
-        private static int TIMEOUT = 10000;
         private ProformanceMonitor proformanceMonitor;
+        private int Timeout = 10000;
+        private int RetryInterval = 5000;
         private uint ListCapacity = 1000;
-        private int RetryWaitting = 5000;
+        private uint HistoryCapacity = 1000;
 
         public string Log;
 
@@ -53,12 +54,22 @@ namespace BiliLiveHelper
             public double Width;
             public double Height;
 
-            public Config(double left, double top, double width, double height)
+            public uint ListCapacity;
+            public uint HistoryCapacity;
+            public int Timeout;
+            public int RetryInterval;
+
+            public Config(double left, double top, double width, double height, uint listCapacity, uint historyCapacity, int timeout, int retryInterval)
             {
                 Left = left;
                 Top = top;
                 Width = width;
                 Height = height;
+
+                ListCapacity = listCapacity;
+                HistoryCapacity = historyCapacity;
+                Timeout = timeout;
+                RetryInterval = retryInterval;
             }
         }
 
@@ -160,7 +171,7 @@ namespace BiliLiveHelper
             ConnectBtn.Content = "正在连接...";
             RoomIdBox.IsEnabled = false;
 
-            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), TIMEOUT);
+            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
             biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
             biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
             biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -200,10 +211,10 @@ namespace BiliLiveHelper
             biliLiveInfo = new BiliLiveInfo(roomId);
             BiliLiveInfo.Info info = null;
             while (info == null)
-                info = biliLiveInfo.GetInfo(TIMEOUT);
+                info = biliLiveInfo.GetInfo(Timeout);
             BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
-            biliLiveInfo.StartInfoListener(TIMEOUT, TIMEOUT);
+            biliLiveInfo.StartInfoListener(Timeout, Timeout);
 
         }
 
@@ -233,7 +244,7 @@ namespace BiliLiveHelper
                 PingReply pingReply = null;
                 try
                 {
-                    pingReply = new Ping().Send("live.bilibili.com", TIMEOUT);
+                    pingReply = new Ping().Send("live.bilibili.com", Timeout);
                 }
                 catch (Exception)
                 {
@@ -241,12 +252,12 @@ namespace BiliLiveHelper
                 }
                 if(pingReply != null && pingReply.Status == IPStatus.Success)
                 {
-                    Thread.Sleep(RetryWaitting);
+                    Thread.Sleep(RetryInterval);
                     Dispatcher.Invoke(new Action(() =>
                     {
                         AppendMessage("尝试重连", (Color)ColorConverter.ConvertFromString("#FFE61919"));
                         biliLiveListener.Disconnect();
-                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), TIMEOUT);
+                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
                         biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
                         biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
                         biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -257,7 +268,7 @@ namespace BiliLiveHelper
                 else
                 {
                     AppendMessage("网络连接失败", (Color)ColorConverter.ConvertFromString("#FFE61919"));
-                    Thread.Sleep(RetryWaitting);
+                    Thread.Sleep(RetryInterval);
                     BiliLiveListener_ConnectionFailed("检测网络");
                 }
             }
@@ -322,7 +333,7 @@ namespace BiliLiveHelper
                 if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
                 {
                     RecievedItems.Add(item);
-                    while (RecievedItems.Count > ListCapacity)
+                    while (RecievedItems.Count > HistoryCapacity)
                         RecievedItems.RemoveAt(0);
                 }
                     
@@ -350,13 +361,13 @@ namespace BiliLiveHelper
                         AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item.Content);
                         break;
                 }
-                //Dispatcher.Invoke(new Action(() =>
-                //{
-                //    while (DanmakuBox.Items.Count > ListCapacity)
-                //        DanmakuBox.Items.RemoveAt(0);
-                //    while (GiftBox.Items.Count > ListCapacity)
-                //        GiftBox.Items.RemoveAt(0);
-                //}));
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    while (DanmakuBox.Items.Count > ListCapacity)
+                        DanmakuBox.Items.RemoveAt(0);
+                    while (GiftBox.Items.Count > ListCapacity)
+                        GiftBox.Items.RemoveAt(0);
+                }));
             }
         }
 
@@ -691,14 +702,18 @@ namespace BiliLiveHelper
 
         // About Header control
 
-        private enum TitleFlag{ DragMove, Close }
+        private enum TitleFlag{ DRAGMOVE, CLOSE, SETTING }
         private TitleFlag titleflag;
 
         private void Header_PreviewMouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (CloseBtn.IsMouseOver)
             {
-                titleflag = TitleFlag.Close;
+                titleflag = TitleFlag.CLOSE;
+            }
+            else if (SettingBtn.IsMouseOver)
+            {
+                titleflag = TitleFlag.SETTING;
             }
             else
             {
@@ -710,16 +725,93 @@ namespace BiliLiveHelper
                 {
 
                 }
-                titleflag = TitleFlag.DragMove;
+                titleflag = TitleFlag.DRAGMOVE;
             }
         }
 
         private void Header_PreviewMouseLeftButtonUp(object sender, MouseButtonEventArgs e)
         {
-            if (CloseBtn.IsMouseOver == true && titleflag == TitleFlag.Close)
+            if (CloseBtn.IsMouseOver == true && titleflag == TitleFlag.CLOSE)
             {
                 this.Close();
             }
+            else if (SettingBtn.IsMouseOver == true && titleflag == TitleFlag.SETTING)
+            {
+                SwitchSettingPanel();
+            }
+        }
+
+        // About settings
+
+        private bool IsSettingPanelShowed = false;
+
+        private void SwitchSettingPanel()
+        {
+            if (IsSettingPanelShowed)
+            {
+                HideSetting();
+            }
+            else
+            {
+                ListCapacitySettingBox.Text = ListCapacity.ToString();
+                HistoryCapacitySettingBox.Text = HistoryCapacity.ToString();
+                TimeoutSettingBox.Text = (Timeout / 1000).ToString();
+                RetryIntervalSettingBox.Text = (RetryInterval / 1000).ToString();
+                ShowSetting();
+            }
+            IsSettingPanelShowed = !IsSettingPanelShowed;
+        }
+
+        private void ClearDanmakuBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DanmakuBox.Items.Clear();
+        }
+
+        private void ClearGiftBtn_Click(object sender, RoutedEventArgs e)
+        {
+            GiftBox.Items.Clear();
+        }
+
+        private void ConfirmSettingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ListCapacity = uint.Parse(ListCapacitySettingBox.Text);
+            HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
+            Timeout = int.Parse(TimeoutSettingBox.Text) * 1000;
+            RetryInterval = int.Parse(RetryIntervalSettingBox.Text) * 1000;
+            HideSetting();
+            while (RecievedItems.Count > HistoryCapacity)
+                RecievedItems.RemoveAt(0);
+            while (DanmakuBox.Items.Count > ListCapacity)
+                DanmakuBox.Items.RemoveAt(0);
+            while (GiftBox.Items.Count > ListCapacity)
+                GiftBox.Items.RemoveAt(0);
+        }
+
+        private void CancelSettingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            HideSetting();
+        }
+
+        private void ShowSetting()
+        {
+            SettingGrid.Visibility = Visibility.Visible;
+            ((Storyboard)Resources["ShowSetting"]).Begin();
+        }
+
+        private void HideSetting()
+        {
+            ListGrid.Visibility = Visibility.Visible;
+            ((Storyboard)Resources["HideSetting"]).Begin();
+        }
+
+        private void SettingShowed(object sender, EventArgs e)
+        {
+            ListGrid.Visibility = Visibility.Hidden;
+        }
+
+        private void SettingHided(object sender, EventArgs e)
+        {
+            SettingGrid.Visibility = Visibility.Hidden;
         }
 
         // About input number checking
@@ -783,7 +875,7 @@ namespace BiliLiveHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Config config = new Config(this.Left, this.Top, this.Width, this.Height);
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval);
             Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
             if (IsConnected)
                 Disconnect();
@@ -850,6 +942,11 @@ namespace BiliLiveHelper
             this.Left = config.Left;
             this.Height = config.Height;
             this.Width = config.Width;
+
+            this.ListCapacity = config.ListCapacity;
+            this.HistoryCapacity = config.HistoryCapacity;
+            this.Timeout = config.Timeout;
+            this.RetryInterval = config.RetryInterval;
         }
 
         private void SaveStatus(Status status)
@@ -927,5 +1024,6 @@ namespace BiliLiveHelper
                 debugWindow.Show();
             }
         }
+
     }
 }

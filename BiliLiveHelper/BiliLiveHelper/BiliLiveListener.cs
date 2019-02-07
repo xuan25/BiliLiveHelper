@@ -24,8 +24,8 @@ namespace BiliLiveHelper
         public event GeneralDelegate ServerHeartbeatRecieved;
 
         private TcpClient tcpClient;
-        private uint RoomId;
-        private int Timeout;
+        private uint roomId;
+        private int timeout;
 
         // About get info
 
@@ -34,7 +34,10 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
-                request.Timeout = Timeout;
+                if (timeout > 0)
+                {
+                    request.Timeout = timeout;
+                }
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
@@ -60,7 +63,10 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
-                request.Timeout = Timeout;
+                if (timeout > 0)
+                {
+                    request.Timeout = timeout;
+                }
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
@@ -286,8 +292,8 @@ namespace BiliLiveHelper
         {
             heartbeatSenderStarted = false;
             eventListenerStarted = false;
-            RoomId = roomId;
-            Timeout = timeout;
+            this.roomId = roomId;
+            this.timeout = timeout;
         }
 
         /// <summary>
@@ -297,7 +303,7 @@ namespace BiliLiveHelper
         {
             new Thread(delegate ()
             {
-                Dictionary<string, string> roomInfo = GetRoomInfo(RoomId);
+                Dictionary<string, string> roomInfo = GetRoomInfo(roomId);
                 if(roomInfo == null)
                     return;
                 tcpClient = Connect(roomInfo);

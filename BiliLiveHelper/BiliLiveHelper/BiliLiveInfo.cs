@@ -41,7 +41,10 @@ namespace BiliLiveHelper
             try
             {
                 HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/get_info?room_id=" + RoomId);
-                request.Timeout = timeout;
+                if (timeout > 0)
+                {
+                    request.Timeout = timeout;
+                }
                 HttpWebResponse response = (HttpWebResponse)request.GetResponse();
                 string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
                 Match match = Regex.Match(ret, "(" +
