@@ -221,9 +221,9 @@ namespace BiliLiveHelper
                         // Check data length
                         if (datalength < 16)
                         {
-                            ConnectionFailed?.Invoke("数据包出错");
-                            Disconnect();
-                            break;
+                            // Handle data error
+                            networkStream.Flush();
+                            continue;
                         }
 
                         // Read header length and protocol version (4)
@@ -240,9 +240,9 @@ namespace BiliLiveHelper
                         int messageLength = datalength - 16;
                         if(messageLength > (double)1024 * 1024 / sizeof(byte))
                         {
-                            ConnectionFailed?.Invoke("数据包出错");
-                            Disconnect();
-                            break;
+                            // Handle data error
+                            networkStream.Flush();
+                            continue;
                         }
                         byte[] messageBuffer = new byte[messageLength];
                         networkStream.Read(messageBuffer, 0, messageLength);
