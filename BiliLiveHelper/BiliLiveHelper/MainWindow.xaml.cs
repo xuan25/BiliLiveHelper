@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -25,7 +26,7 @@ namespace BiliLiveHelper
         private List<BiliLiveJsonParser.Item> RecievedItems;
         private ProformanceMonitor proformanceMonitor;
         private int Timeout = 10000;
-        private int RetryInterval = 5000;
+        private int RetryInterval = 3000;
         private uint ListCapacity = 1000;
         private uint HistoryCapacity = 1000;
 
@@ -85,6 +86,7 @@ namespace BiliLiveHelper
         }
 
         // About startup
+
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
             DanmakuBox.Items.Clear();
@@ -137,6 +139,132 @@ namespace BiliLiveHelper
             {
                 GpuUsage.Text = string.Format("{0}%", percentage);
             }));
+        }
+
+        // About resize
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            HwndSource hwndSource = (HwndSource)PresentationSource.FromVisual(this);
+            if (hwndSource != null)
+            {
+                hwndSource.AddHook(new HwndSourceHook(this.WndProc));
+            }
+        }
+
+        private const int WM_NCHITTEST = 0x0084;
+        public enum HitTest : int
+        {
+            HTERROR = -2,
+            HTTRANSPARENT = -1,
+            HTNOWHERE = 0,
+            HTCLIENT = 1,
+            HTCAPTION = 2,
+            HTSYSMENU = 3,
+            HTGROWBOX = 4,
+            HTSIZE = HTGROWBOX,
+            HTMENU = 5,
+            HTHSCROLL = 6,
+            HTVSCROLL = 7,
+            HTMINBUTTON = 8,
+            HTMAXBUTTON = 9,
+            HTLEFT = 10,
+            HTRIGHT = 11,
+            HTTOP = 12,
+            HTTOPLEFT = 13,
+            HTTOPRIGHT = 14,
+            HTBOTTOM = 15,
+            HTBOTTOMLEFT = 16,
+            HTBOTTOMRIGHT = 17,
+            HTBORDER = 18,
+            HTREDUCE = HTMINBUTTON,
+            HTZOOM = HTMAXBUTTON,
+            HTSIZEFIRST = HTLEFT,
+            HTSIZELAST = HTBOTTOMRIGHT,
+            HTOBJECT = 19,
+            HTCLOSE = 20,
+            HTHELP = 21,
+        }
+        private readonly int borderThickness = 16; //  边框宽度
+        private readonly int borderOffset = 8; //  边框偏移
+        private Point mousePoint = new Point(); //  鼠标坐标
+        protected virtual IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch (msg)
+            {
+                case WM_NCHITTEST:
+                    this.mousePoint.X = (lParam.ToInt32() & 0xFFFF);
+                    this.mousePoint.Y = (lParam.ToInt32() >> 16);
+
+                    // 空白
+                    if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.mousePoint.Y - this.Top <= this.borderOffset && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
+                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset
+                        || this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
+                        || this.mousePoint.Y - this.Top <= this.borderOffset
+                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTRANSPARENT);
+                    }
+                    // 窗口左上角
+                    if (this.mousePoint.Y - this.Top <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOPLEFT);
+                    }
+                    // 窗口左下角    
+                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOMLEFT);
+                    }
+                    // 窗口右上角
+                    else if (this.mousePoint.Y - this.Top <= this.borderThickness && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOPRIGHT);
+                    }
+                    // 窗口右下角
+                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOMRIGHT);
+                    }
+                    // 窗口左侧
+                    else if (this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTLEFT);
+                    }
+                    // 窗口右侧
+                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTRIGHT);
+                    }
+                    // 窗口上方
+                    else if (this.mousePoint.Y - this.Top <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOP);
+                    }
+                    // 窗口下方
+                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOM);
+                    }
+                    else // 窗口内部
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTCLIENT);
+                    }
+            }
+            return IntPtr.Zero;
         }
 
         // About button
@@ -758,11 +886,9 @@ namespace BiliLiveHelper
 
         // About settings
 
-        private bool IsSettingPanelShowed = false;
-
         private void SwitchSettingPanel()
         {
-            if (IsSettingPanelShowed)
+            if (!ListGrid.IsHitTestVisible)
             {
                 HideSetting();
             }
@@ -774,7 +900,6 @@ namespace BiliLiveHelper
                 RetryIntervalSettingBox.Text = (RetryInterval / 1000).ToString();
                 ShowSetting();
             }
-            IsSettingPanelShowed = !IsSettingPanelShowed;
         }
 
         private void ClearDanmakuBtn_Click(object sender, RoutedEventArgs e)
@@ -788,6 +913,11 @@ namespace BiliLiveHelper
         }
 
         private void ConfirmSettingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ConfirmSetting();
+        }
+
+        private void ConfirmSetting()
         {
             ListCapacity = uint.Parse(ListCapacitySettingBox.Text);
             HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
@@ -843,10 +973,30 @@ namespace BiliLiveHelper
         {
             if (e.Key == Key.Space)
                 e.Handled = true;
-            else if (e.Key == Key.Enter)
+            else if (sender == RoomIdBox && e.Key == Key.Enter)
             {
                 e.Handled = true;
                 Connect();
+            }
+            else if (sender == ListCapacitySettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == HistoryCapacitySettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == TimeoutSettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == RetryIntervalSettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
             }
         }
 
@@ -973,6 +1123,12 @@ namespace BiliLiveHelper
             string path = Path.GetTempPath() + "BiliLiveHelper\\Status.dat";
             if (!File.Exists(path))
             {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    ConnectBtn.Content = "连接";
+                    ConnectBtn.IsEnabled = true;
+                    RoomIdBox.IsEnabled = true;
+                }));
                 return false;
             }
             try
@@ -986,6 +1142,12 @@ namespace BiliLiveHelper
             }
             catch (Exception)
             {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    ConnectBtn.Content = "连接";
+                    ConnectBtn.IsEnabled = true;
+                    RoomIdBox.IsEnabled = true;
+                }));
                 return false;
             }
         }
