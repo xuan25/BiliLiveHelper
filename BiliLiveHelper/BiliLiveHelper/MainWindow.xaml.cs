@@ -208,7 +208,6 @@ namespace BiliLiveHelper
             BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
             biliLiveInfo.StartInfoListener(Timeout, Timeout);
-
         }
 
         private void BiliLiveListener_Disconnected()
@@ -326,7 +325,21 @@ namespace BiliLiveHelper
         {
             if (item != null)
             {
-                if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    if (item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG || item.Type == BiliLiveJsonParser.Item.Types.WELCOME || item.Type == BiliLiveJsonParser.Item.Types.WELCOME_GUARD || item.Type == BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG)
+                        while (DanmakuBox.Items.Count >= ListCapacity)
+                        {
+                            RemoveFirstItem(DanmakuBox);
+                        }
+                    else
+                        while (GiftBox.Items.Count >= ListCapacity)
+                        {
+                            RemoveFirstItem(GiftBox);
+                        }
+                }));
+
+                if (!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
                 {
                     RecievedItems.Add(item);
                     while (RecievedItems.Count > HistoryCapacity)
@@ -357,14 +370,19 @@ namespace BiliLiveHelper
                         AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item.Content);
                         break;
                 }
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    while (DanmakuBox.Items.Count > ListCapacity)
-                        DanmakuBox.Items.RemoveAt(0);
-                    while (GiftBox.Items.Count > ListCapacity)
-                        GiftBox.Items.RemoveAt(0);
-                }));
+                
             }
+        }
+
+        private void RemoveFirstItem(ListBox listBox)
+        {
+            if (listBox.IsMouseOver)
+            {
+                Decorator decorator = (Decorator)VisualTreeHelper.GetChild(DanmakuBox, 0);
+                ScrollViewer scrollViewer = (ScrollViewer)decorator.Child;
+                scrollViewer.ScrollToVerticalOffset(-((ListBoxItem)listBox.Items[0]).ActualHeight);
+            }
+            listBox.Items.RemoveAt(0);
         }
 
         private void AppendDanmaku(BiliLiveJsonParser.Danmaku danmaku)
@@ -830,7 +848,6 @@ namespace BiliLiveHelper
                 e.Handled = true;
                 Connect();
             }
-                
         }
 
         private void NumberBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
