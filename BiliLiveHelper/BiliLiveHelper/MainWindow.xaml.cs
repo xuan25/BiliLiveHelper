@@ -186,10 +186,10 @@ namespace BiliLiveHelper
             HTCLOSE = 20,
             HTHELP = 21,
         }
-        private readonly int borderThickness = 16; //  边框宽度
-        private readonly int borderOffset = 8; //  边框偏移
-        private Point mousePoint = new Point(); //  鼠标坐标
-        protected virtual IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        private readonly int borderThickness = 16;
+        private readonly int borderOffset = 8;
+        private Point mousePoint = new Point();
+        protected IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             switch (msg)
             {
@@ -197,7 +197,7 @@ namespace BiliLiveHelper
                     this.mousePoint.X = (lParam.ToInt32() & 0xFFFF);
                     this.mousePoint.Y = (lParam.ToInt32() >> 16);
 
-                    // 空白
+                    // Empty
                     if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
                         || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
                         || this.mousePoint.Y - this.Top <= this.borderOffset && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
@@ -210,55 +210,55 @@ namespace BiliLiveHelper
                         handled = true;
                         return new IntPtr((int)HitTest.HTTRANSPARENT);
                     }
-                    // 窗口左上角
+                    // TopLeft
                     if (this.mousePoint.Y - this.Top <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTTOPLEFT);
                     }
-                    // 窗口左下角    
+                    // BottomLeft    
                     else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTBOTTOMLEFT);
                     }
-                    // 窗口右上角
+                    // TopRight
                     else if (this.mousePoint.Y - this.Top <= this.borderThickness && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTTOPRIGHT);
                     }
-                    // 窗口右下角
+                    // BottomRight
                     else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTBOTTOMRIGHT);
                     }
-                    // 窗口左侧
+                    // Left
                     else if (this.mousePoint.X - this.Left <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTLEFT);
                     }
-                    // 窗口右侧
+                    // Right
                     else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTRIGHT);
                     }
-                    // 窗口上方
+                    // Top
                     else if (this.mousePoint.Y - this.Top <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTTOP);
                     }
-                    // 窗口下方
+                    // Bottom
                     else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTBOTTOM);
                     }
-                    else // 窗口内部
+                    else // Inside
                     {
                         handled = true;
                         return new IntPtr((int)HitTest.HTCLIENT);
