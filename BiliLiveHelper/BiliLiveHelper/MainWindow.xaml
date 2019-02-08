@@ -19,7 +19,7 @@
                             BeginTime="00:00:00.000" To="0"
                             Duration="00:00:00.200"/>
         </Storyboard>
-        <Storyboard x:Key="ShowSetting" Completed="SettingShowed">
+        <Storyboard x:Key="ShowSetting">
             <DoubleAnimation Storyboard.TargetName="ListGrid" 
                             Storyboard.TargetProperty="Opacity"
                             BeginTime="00:00:00.000" To="0"
@@ -29,7 +29,7 @@
                             BeginTime="00:00:00.000" To="1"
                             Duration="00:00:00.200"/>
         </Storyboard>
-        <Storyboard x:Key="HideSetting" Completed="SettingHided">
+        <Storyboard x:Key="HideSetting">
             <DoubleAnimation Storyboard.TargetName="SettingGrid" 
                             Storyboard.TargetProperty="Opacity"
                             BeginTime="00:00:00.000" To="0"
@@ -64,7 +64,7 @@
                             Duration="00:00:00.200"/>
         </Storyboard>
         <Storyboard x:Key="ShowRhythmStorm">
-            <DoubleAnimation Storyboard.TargetName="RhythmStormBox" 
+            <DoubleAnimation Storyboard.TargetName="RhythmStormBox"
                             Storyboard.TargetProperty="Opacity"
                             BeginTime="00:00:00.000" To="1"
                             Duration="00:00:00.000"/>

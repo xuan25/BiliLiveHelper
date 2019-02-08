@@ -237,7 +237,10 @@ namespace BiliLiveHelper
                 PingReply pingReply = null;
                 try
                 {
-                    pingReply = new Ping().Send("live.bilibili.com", Timeout);
+                    if (Timeout > 0)
+                        pingReply = new Ping().Send("live.bilibili.com", Timeout);
+                    else
+                        pingReply = new Ping().Send("live.bilibili.com");
                 }
                 catch (Exception)
                 {
@@ -415,6 +418,7 @@ namespace BiliLiveHelper
             {
                 RhythmStormTextBox.Text = danmaku.Content;
                 RhythmStormCountBox.Text = " x" + rhythmStormCount;
+                RhythmStormBox.Visibility = Visibility.Visible;
                 ((Storyboard)Resources["ShowRhythmStorm"]).Begin();
             }));
             lastRhythmTime = DateTime.Now;
@@ -778,6 +782,9 @@ namespace BiliLiveHelper
                 DanmakuBox.Items.RemoveAt(0);
             while (GiftBox.Items.Count > ListCapacity)
                 GiftBox.Items.RemoveAt(0);
+
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval);
+            SaveConfig(config);
         }
 
         private void CancelSettingBtn_Click(object sender, RoutedEventArgs e)
@@ -787,24 +794,14 @@ namespace BiliLiveHelper
 
         private void ShowSetting()
         {
-            SettingGrid.Visibility = Visibility.Visible;
+            ListGrid.IsHitTestVisible = false;
             ((Storyboard)Resources["ShowSetting"]).Begin();
         }
 
         private void HideSetting()
         {
-            ListGrid.Visibility = Visibility.Visible;
+            ListGrid.IsHitTestVisible = true;
             ((Storyboard)Resources["HideSetting"]).Begin();
-        }
-
-        private void SettingShowed(object sender, EventArgs e)
-        {
-            ListGrid.Visibility = Visibility.Hidden;
-        }
-
-        private void SettingHided(object sender, EventArgs e)
-        {
-            SettingGrid.Visibility = Visibility.Hidden;
         }
 
         // About input number checking
@@ -1028,6 +1025,5 @@ namespace BiliLiveHelper
                 debugWindow.Show();
             }
         }
-
     }
 }
