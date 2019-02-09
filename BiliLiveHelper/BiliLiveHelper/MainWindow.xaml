@@ -493,6 +493,7 @@
                 <TextBlock.Background>
                     <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                         <GradientStop Color="#FFE6903E" Offset="0" />
+                        <GradientStop Color="#FFE6903E" Offset="0.8" />
                         <GradientStop Color="#00E6903E" Offset="1" />
                     </LinearGradientBrush>
                 </TextBlock.Background>
