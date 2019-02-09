@@ -194,9 +194,8 @@ namespace BiliLiveHelper
             switch (msg)
             {
                 case WM_NCHITTEST:
-                    this.mousePoint.X = (lParam.ToInt32() & 0xFFFF);
-                    this.mousePoint.Y = (lParam.ToInt32() >> 16);
-
+                    this.mousePoint.X = (Int16)(lParam.ToInt32() & 0xFFFF);
+                    this.mousePoint.Y = (Int16)(lParam.ToInt32() >> 16);
                     // Empty
                     if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
                         || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
