@@ -20,6 +20,7 @@ namespace BiliLiveHelper
     /// </summary>
     public partial class MainWindow : Window
     {
+        //Attributes
         private BiliLiveListener biliLiveListener;
         private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
@@ -89,6 +90,11 @@ namespace BiliLiveHelper
 
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
+            IntPtr windowHandle = new WindowInteropHelper(this).Handle;
+            WindowLong.SetWindowLong(windowHandle, WindowLong.GWL_STYLE, (WindowLong.GetWindowLong(windowHandle, WindowLong.GWL_STYLE) | WindowLong.WS_CAPTION));
+            WindowLong.SetWindowLong(windowHandle, WindowLong.GWL_EXSTYLE, (WindowLong.GetWindowLong(windowHandle, WindowLong.GWL_EXSTYLE) | WindowLong.WS_EX_TOOLWINDOW));
+
+
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
 
@@ -859,15 +865,18 @@ namespace BiliLiveHelper
             }
             else
             {
+                titleflag = TitleFlag.DRAGMOVE;
+                this.ResizeMode = ResizeMode.NoResize;
                 try
                 {
                     this.DragMove();
+                    
                 }
                 catch (InvalidOperationException)
                 {
 
                 }
-                titleflag = TitleFlag.DRAGMOVE;
+                this.ResizeMode = ResizeMode.CanResize;
             }
         }
 
