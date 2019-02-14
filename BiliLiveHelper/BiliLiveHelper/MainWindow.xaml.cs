@@ -458,25 +458,26 @@ namespace BiliLiveHelper
         {
             if (item != null)
             {
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    if (item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG || item.Type == BiliLiveJsonParser.Item.Types.WELCOME || item.Type == BiliLiveJsonParser.Item.Types.WELCOME_GUARD || item.Type == BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG)
-                        while (DanmakuBox.Items.Count >= ListCapacity)
-                        {
-                            RemoveFirstItem(DanmakuBox);
-                        }
-                    else
-                        while (GiftBox.Items.Count >= ListCapacity)
-                        {
-                            RemoveFirstItem(GiftBox);
-                        }
-                }));
-
+                // If not Rhythm storm
                 if (!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
                 {
                     RecievedItems.Add(item);
                     while (RecievedItems.Count > HistoryCapacity)
                         RecievedItems.RemoveAt(0);
+
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG || item.Type == BiliLiveJsonParser.Item.Types.WELCOME || item.Type == BiliLiveJsonParser.Item.Types.WELCOME_GUARD || item.Type == BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG)
+                            while (DanmakuBox.Items.Count >= ListCapacity)
+                            {
+                                RemoveFirstItem(DanmakuBox);
+                            }
+                        else
+                            while (GiftBox.Items.Count >= ListCapacity)
+                            {
+                                RemoveFirstItem(GiftBox);
+                            }
+                    }));
                 }
                     
                 switch (item.Type)
@@ -513,7 +514,7 @@ namespace BiliLiveHelper
             {
                 Decorator decorator = (Decorator)VisualTreeHelper.GetChild(DanmakuBox, 0);
                 ScrollViewer scrollViewer = (ScrollViewer)decorator.Child;
-                scrollViewer.ScrollToVerticalOffset(-((ListBoxItem)listBox.Items[0]).ActualHeight);
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - ((ListBoxItem)listBox.Items[0]).ActualHeight);
             }
             listBox.Items.RemoveAt(0);
         }
