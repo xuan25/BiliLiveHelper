@@ -920,6 +920,13 @@ namespace BiliLiveHelper
             GiftBox.Items.Clear();
         }
 
+        private void ClearHistoryBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DanmakuBox.Items.Clear();
+            GiftBox.Items.Clear();
+            RecievedItems.Clear();
+        }
+
         private void ConfirmSettingBtn_Click(object sender, RoutedEventArgs e)
         {
             ConfirmSetting();

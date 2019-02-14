@@ -362,7 +362,7 @@
             </Grid>
         </Grid>
 
-        <ScrollViewer x:Name="SettingGrid" Grid.Row="2" Style="{StaticResource ScrollViewerStyle}" Opacity="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ScrollViewer x:Name="SettingGrid" Grid.Row="2" Style="{StaticResource ScrollViewerStyle}" Opacity="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
             <Border BorderBrush="#FF47494F" BorderThickness="1">
                 <Grid>
                     <Grid.RowDefinitions>
@@ -399,6 +399,7 @@
                     <TextBox x:Name="RetryIntervalSettingBox" Grid.Row="4" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
                     <Button Grid.Row="5" Grid.Column="0" x:Name="ClearDanmakuBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空弹幕" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearDanmakuBtn_Click"/>
                     <Button Grid.Row="5" Grid.Column="0" x:Name="ClearGiftBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空礼物" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="ClearGiftBtn_Click"/>
+                    <Button Grid.Row="5" Grid.Column="1" x:Name="ClearHistoryBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空历史" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearHistoryBtn_Click"/>
                     <Button Grid.Row="6" Grid.Column="0" x:Name="ConfirmSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="确定" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ConfirmSettingBtn_Click"/>
                     <Button Grid.Row="6" Grid.Column="0" x:Name="CancelSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="取消" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="CancelSettingBtn_Click"/>
                 </Grid>
