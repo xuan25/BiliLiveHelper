@@ -1077,7 +1077,7 @@ namespace BiliLiveHelper
 
         private void SaveConfig(Config config)
         {
-            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
+            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
                 Directory.CreateDirectory(fileDirectory);
             string fileName = "Config.dat";
@@ -1089,7 +1089,7 @@ namespace BiliLiveHelper
 
         private bool LoadConfig()
         {
-            string path = Path.GetTempPath() + "BiliLiveHelper\\Config.dat";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Config.dat";
             if (!File.Exists(path))
             {
                 return false;
@@ -1124,7 +1124,7 @@ namespace BiliLiveHelper
 
         private void SaveStatus(Status status)
         {
-            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
+            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
                 Directory.CreateDirectory(fileDirectory);
             string fileName = "Status.dat";
@@ -1136,7 +1136,7 @@ namespace BiliLiveHelper
 
         private bool LoadStatus()
         {
-            string path = Path.GetTempPath() + "BiliLiveHelper\\Status.dat";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Status.dat";
             if (!File.Exists(path))
             {
                 Dispatcher.Invoke(new Action(() =>

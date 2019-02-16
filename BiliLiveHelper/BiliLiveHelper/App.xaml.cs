@@ -41,7 +41,7 @@ namespace BiliLiveHelper
 
         private void SaveLog(string log)
         {
-            string folder = Path.GetTempPath() + "BiliLiveHelper\\Logs\\";
+            string folder = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Logs\\";
             Directory.CreateDirectory(folder);
             string time = DateTime.Now.ToString().Replace(':', '-').Replace('/', '-');
 
