@@ -163,7 +163,7 @@ namespace BiliLiveHelper
                             content = new Welcome(new User(match.Groups["UserId"].Value, Regex.Unescape(match.Groups["Username"].Value)));
                         break;
                     case Item.Types.WELCOME_GUARD:
-                        match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uid\":(?<UserId>[0-9]+),\"username\":\"(?<Username>.*?)\",\"guard_level\":[0-9]+}$");
+                        match = Regex.Match(match.Groups["Info"].Value, "^\"data\":{\"uid\":(?<UserId>[0-9]+),\"username\":\"(?<Username>.*?)\",\"guard_level\":[0-9]+(,\"water_god\":[0-9]+)?}(,\"roomid\":[0-9]+)?$");
                         if (match.Success)
                             content = new WelcomeGuard(new User(match.Groups["UserId"].Value, Regex.Unescape(match.Groups["Username"].Value)));
                         break;

@@ -9,6 +9,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
+using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 
@@ -19,13 +20,14 @@ namespace BiliLiveHelper
     /// </summary>
     public partial class MainWindow : Window
     {
+        //Attributes
         private BiliLiveListener biliLiveListener;
         private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
         private PerformanceMonitor proformanceMonitor;
         private int Timeout = 10000;
-        private int RetryInterval = 5000;
+        private int RetryInterval = 3000;
         private uint ListCapacity = 1000;
         private uint HistoryCapacity = 1000;
 
@@ -85,8 +87,14 @@ namespace BiliLiveHelper
         }
 
         // About startup
+
         private void Main_Loaded(object sender, RoutedEventArgs e)
         {
+            IntPtr windowHandle = new WindowInteropHelper(this).Handle;
+            WindowLong.SetWindowLong(windowHandle, WindowLong.GWL_STYLE, (WindowLong.GetWindowLong(windowHandle, WindowLong.GWL_STYLE) | WindowLong.WS_CAPTION));
+            WindowLong.SetWindowLong(windowHandle, WindowLong.GWL_EXSTYLE, (WindowLong.GetWindowLong(windowHandle, WindowLong.GWL_EXSTYLE) | WindowLong.WS_EX_TOOLWINDOW));
+
+
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
 
@@ -137,6 +145,131 @@ namespace BiliLiveHelper
             {
                 GpuUsage.Text = string.Format("{0}%", percentage);
             }));
+        }
+
+        // About resize
+
+        protected override void OnSourceInitialized(EventArgs e)
+        {
+            base.OnSourceInitialized(e);
+            HwndSource hwndSource = (HwndSource)PresentationSource.FromVisual(this);
+            if (hwndSource != null)
+            {
+                hwndSource.AddHook(new HwndSourceHook(this.WndProc));
+            }
+        }
+
+        private const int WM_NCHITTEST = 0x0084;
+        public enum HitTest : int
+        {
+            HTERROR = -2,
+            HTTRANSPARENT = -1,
+            HTNOWHERE = 0,
+            HTCLIENT = 1,
+            HTCAPTION = 2,
+            HTSYSMENU = 3,
+            HTGROWBOX = 4,
+            HTSIZE = HTGROWBOX,
+            HTMENU = 5,
+            HTHSCROLL = 6,
+            HTVSCROLL = 7,
+            HTMINBUTTON = 8,
+            HTMAXBUTTON = 9,
+            HTLEFT = 10,
+            HTRIGHT = 11,
+            HTTOP = 12,
+            HTTOPLEFT = 13,
+            HTTOPRIGHT = 14,
+            HTBOTTOM = 15,
+            HTBOTTOMLEFT = 16,
+            HTBOTTOMRIGHT = 17,
+            HTBORDER = 18,
+            HTREDUCE = HTMINBUTTON,
+            HTZOOM = HTMAXBUTTON,
+            HTSIZEFIRST = HTLEFT,
+            HTSIZELAST = HTBOTTOMRIGHT,
+            HTOBJECT = 19,
+            HTCLOSE = 20,
+            HTHELP = 21,
+        }
+        private readonly int borderThickness = 16;
+        private readonly int borderOffset = 8;
+        private Point mousePoint = new Point();
+        protected IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
+        {
+            switch (msg)
+            {
+                case WM_NCHITTEST:
+                    this.mousePoint.X = (Int16)(lParam.ToInt32() & 0xFFFF);
+                    this.mousePoint.Y = (Int16)(lParam.ToInt32() >> 16);
+                    // Empty
+                    if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.mousePoint.Y - this.Top <= this.borderOffset && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
+                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset
+                        || this.mousePoint.X - this.Left <= this.borderOffset
+                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
+                        || this.mousePoint.Y - this.Top <= this.borderOffset
+                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTRANSPARENT);
+                    }
+                    // TopLeft
+                    if (this.mousePoint.Y - this.Top <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOPLEFT);
+                    }
+                    // BottomLeft    
+                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOMLEFT);
+                    }
+                    // TopRight
+                    else if (this.mousePoint.Y - this.Top <= this.borderThickness && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOPRIGHT);
+                    }
+                    // BottomRight
+                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOMRIGHT);
+                    }
+                    // Left
+                    else if (this.mousePoint.X - this.Left <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTLEFT);
+                    }
+                    // Right
+                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTRIGHT);
+                    }
+                    // Top
+                    else if (this.mousePoint.Y - this.Top <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTTOP);
+                    }
+                    // Bottom
+                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTBOTTOM);
+                    }
+                    else // Inside
+                    {
+                        handled = true;
+                        return new IntPtr((int)HitTest.HTCLIENT);
+                    }
+            }
+            return IntPtr.Zero;
         }
 
         // About button
@@ -208,7 +341,6 @@ namespace BiliLiveHelper
             BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
             biliLiveInfo.StartInfoListener(Timeout, Timeout);
-
         }
 
         private void BiliLiveListener_Disconnected()
@@ -237,7 +369,10 @@ namespace BiliLiveHelper
                 PingReply pingReply = null;
                 try
                 {
-                    pingReply = new Ping().Send("live.bilibili.com", Timeout);
+                    if (Timeout > 0)
+                        pingReply = new Ping().Send("live.bilibili.com", Timeout);
+                    else
+                        pingReply = new Ping().Send("live.bilibili.com");
                 }
                 catch (Exception)
                 {
@@ -323,11 +458,26 @@ namespace BiliLiveHelper
         {
             if (item != null)
             {
-                if(!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
+                // If not Rhythm storm
+                if (!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
                 {
                     RecievedItems.Add(item);
                     while (RecievedItems.Count > HistoryCapacity)
                         RecievedItems.RemoveAt(0);
+
+                    Dispatcher.Invoke(new Action(() =>
+                    {
+                        if (item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG || item.Type == BiliLiveJsonParser.Item.Types.WELCOME || item.Type == BiliLiveJsonParser.Item.Types.WELCOME_GUARD || item.Type == BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG)
+                            while (DanmakuBox.Items.Count >= ListCapacity)
+                            {
+                                RemoveFirstItem(DanmakuBox);
+                            }
+                        else
+                            while (GiftBox.Items.Count >= ListCapacity)
+                            {
+                                RemoveFirstItem(GiftBox);
+                            }
+                    }));
                 }
                     
                 switch (item.Type)
@@ -354,14 +504,19 @@ namespace BiliLiveHelper
                         AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item.Content);
                         break;
                 }
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    while (DanmakuBox.Items.Count > ListCapacity)
-                        DanmakuBox.Items.RemoveAt(0);
-                    while (GiftBox.Items.Count > ListCapacity)
-                        GiftBox.Items.RemoveAt(0);
-                }));
+                
             }
+        }
+
+        private void RemoveFirstItem(ListBox listBox)
+        {
+            if (listBox.IsMouseOver)
+            {
+                Decorator decorator = (Decorator)VisualTreeHelper.GetChild(DanmakuBox, 0);
+                ScrollViewer scrollViewer = (ScrollViewer)decorator.Child;
+                scrollViewer.ScrollToVerticalOffset(scrollViewer.VerticalOffset - ((ListBoxItem)listBox.Items[0]).ActualHeight);
+            }
+            listBox.Items.RemoveAt(0);
         }
 
         private void AppendDanmaku(BiliLiveJsonParser.Danmaku danmaku)
@@ -415,6 +570,7 @@ namespace BiliLiveHelper
             {
                 RhythmStormTextBox.Text = danmaku.Content;
                 RhythmStormCountBox.Text = " x" + rhythmStormCount;
+                RhythmStormBox.Visibility = Visibility.Visible;
                 ((Storyboard)Resources["ShowRhythmStorm"]).Begin();
             }));
             lastRhythmTime = DateTime.Now;
@@ -710,15 +866,18 @@ namespace BiliLiveHelper
             }
             else
             {
+                titleflag = TitleFlag.DRAGMOVE;
+                this.ResizeMode = ResizeMode.NoResize;
                 try
                 {
                     this.DragMove();
+                    
                 }
                 catch (InvalidOperationException)
                 {
 
                 }
-                titleflag = TitleFlag.DRAGMOVE;
+                this.ResizeMode = ResizeMode.CanResize;
             }
         }
 
@@ -736,11 +895,9 @@ namespace BiliLiveHelper
 
         // About settings
 
-        private bool IsSettingPanelShowed = false;
-
         private void SwitchSettingPanel()
         {
-            if (IsSettingPanelShowed)
+            if (!ListGrid.IsHitTestVisible)
             {
                 HideSetting();
             }
@@ -752,7 +909,6 @@ namespace BiliLiveHelper
                 RetryIntervalSettingBox.Text = (RetryInterval / 1000).ToString();
                 ShowSetting();
             }
-            IsSettingPanelShowed = !IsSettingPanelShowed;
         }
 
         private void ClearDanmakuBtn_Click(object sender, RoutedEventArgs e)
@@ -765,7 +921,19 @@ namespace BiliLiveHelper
             GiftBox.Items.Clear();
         }
 
+        private void ClearHistoryBtn_Click(object sender, RoutedEventArgs e)
+        {
+            DanmakuBox.Items.Clear();
+            GiftBox.Items.Clear();
+            RecievedItems.Clear();
+        }
+
         private void ConfirmSettingBtn_Click(object sender, RoutedEventArgs e)
+        {
+            ConfirmSetting();
+        }
+
+        private void ConfirmSetting()
         {
             ListCapacity = uint.Parse(ListCapacitySettingBox.Text);
             HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
@@ -778,6 +946,9 @@ namespace BiliLiveHelper
                 DanmakuBox.Items.RemoveAt(0);
             while (GiftBox.Items.Count > ListCapacity)
                 GiftBox.Items.RemoveAt(0);
+
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval);
+            SaveConfig(config);
         }
 
         private void CancelSettingBtn_Click(object sender, RoutedEventArgs e)
@@ -787,24 +958,14 @@ namespace BiliLiveHelper
 
         private void ShowSetting()
         {
-            SettingGrid.Visibility = Visibility.Visible;
+            ListGrid.IsHitTestVisible = false;
             ((Storyboard)Resources["ShowSetting"]).Begin();
         }
 
         private void HideSetting()
         {
-            ListGrid.Visibility = Visibility.Visible;
+            ListGrid.IsHitTestVisible = true;
             ((Storyboard)Resources["HideSetting"]).Begin();
-        }
-
-        private void SettingShowed(object sender, EventArgs e)
-        {
-            ListGrid.Visibility = Visibility.Hidden;
-        }
-
-        private void SettingHided(object sender, EventArgs e)
-        {
-            SettingGrid.Visibility = Visibility.Hidden;
         }
 
         // About input number checking
@@ -828,12 +989,31 @@ namespace BiliLiveHelper
         {
             if (e.Key == Key.Space)
                 e.Handled = true;
-            else if (e.Key == Key.Enter)
+            else if (sender == RoomIdBox && e.Key == Key.Enter)
             {
                 e.Handled = true;
                 Connect();
             }
-                
+            else if (sender == ListCapacitySettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == HistoryCapacitySettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == TimeoutSettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
+            else if (sender == RetryIntervalSettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
         }
 
         private void NumberBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -897,7 +1077,7 @@ namespace BiliLiveHelper
 
         private void SaveConfig(Config config)
         {
-            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
+            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
                 Directory.CreateDirectory(fileDirectory);
             string fileName = "Config.dat";
@@ -909,7 +1089,7 @@ namespace BiliLiveHelper
 
         private bool LoadConfig()
         {
-            string path = Path.GetTempPath() + "BiliLiveHelper\\Config.dat";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Config.dat";
             if (!File.Exists(path))
             {
                 return false;
@@ -944,7 +1124,7 @@ namespace BiliLiveHelper
 
         private void SaveStatus(Status status)
         {
-            string fileDirectory = Path.GetTempPath() + "BiliLiveHelper\\";
+            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
             if (!Directory.Exists(fileDirectory))
                 Directory.CreateDirectory(fileDirectory);
             string fileName = "Status.dat";
@@ -956,9 +1136,15 @@ namespace BiliLiveHelper
 
         private bool LoadStatus()
         {
-            string path = Path.GetTempPath() + "BiliLiveHelper\\Status.dat";
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Status.dat";
             if (!File.Exists(path))
             {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    ConnectBtn.Content = "连接";
+                    ConnectBtn.IsEnabled = true;
+                    RoomIdBox.IsEnabled = true;
+                }));
                 return false;
             }
             try
@@ -972,6 +1158,12 @@ namespace BiliLiveHelper
             }
             catch (Exception)
             {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    ConnectBtn.Content = "连接";
+                    ConnectBtn.IsEnabled = true;
+                    RoomIdBox.IsEnabled = true;
+                }));
                 return false;
             }
         }
@@ -1028,6 +1220,5 @@ namespace BiliLiveHelper
                 debugWindow.Show();
             }
         }
-
     }
 }
