@@ -54,11 +54,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Screen.cs" />
+    <Compile Include="Framework\Screen.cs" />
     <Compile Include="Json\JsonArray.cs" />
     <Compile Include="Json\JsonObject.cs" />
     <Compile Include="Json\JsonParser.cs" />
-    <Compile Include="WindowLong.cs" />
+    <Compile Include="Framework\WindowLong.cs" />
     <Page Include="DebugWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -71,9 +71,9 @@
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="BiliLiveInfo.cs" />
-    <Compile Include="BiliLiveJsonParser.cs" />
-    <Compile Include="BiliLiveListener.cs" />
+    <Compile Include="Bili\BiliLiveInfo.cs" />
+    <Compile Include="Bili\BiliLiveJsonParser.cs" />
+    <Compile Include="Bili\BiliLiveListener.cs" />
     <Compile Include="DebugWindow.xaml.cs">
       <DependentUpon>DebugWindow.xaml</DependentUpon>
     </Compile>
@@ -83,7 +83,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="PerformanceMonitor.cs" />
+    <Compile Include="Performance\PerformanceMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>
