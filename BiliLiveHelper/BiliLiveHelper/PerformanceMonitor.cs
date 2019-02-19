@@ -10,13 +10,13 @@ using System.Threading.Tasks;
 
 namespace BiliLiveHelper
 {
-    class ProformanceMonitor
+    class PerformanceMonitor
     {
         public delegate void ProformanceDelegate(uint percentage);
         public event ProformanceDelegate CpuProformanceRecieved;
         public event ProformanceDelegate GpuProformanceRecieved;
 
-        public ProformanceMonitor()
+        public PerformanceMonitor()
         {
 
         }

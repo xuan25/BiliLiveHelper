@@ -23,7 +23,7 @@ namespace BiliLiveHelper
         private BiliLiveInfo biliLiveInfo;
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
-        private ProformanceMonitor proformanceMonitor;
+        private PerformanceMonitor proformanceMonitor;
         private int Timeout = 10000;
         private int RetryInterval = 5000;
         private uint ListCapacity = 1000;
@@ -106,7 +106,7 @@ namespace BiliLiveHelper
                         RoomIdBox.Select(RoomIdBox.Text.Length, 0);
                     }));
 
-                    proformanceMonitor = new ProformanceMonitor();
+                    proformanceMonitor = new PerformanceMonitor();
                     proformanceMonitor.CpuProformanceRecieved += ProformanceMonitor_CpuProformanceRecieved;
                     proformanceMonitor.GpuProformanceRecieved += ProformanceMonitor_GpuProformanceRecieved;
                     bool[] availability = proformanceMonitor.StartMonitoring();
