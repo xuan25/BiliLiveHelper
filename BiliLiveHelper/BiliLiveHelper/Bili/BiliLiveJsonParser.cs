@@ -128,7 +128,6 @@ namespace BiliLiveHelper
 
         public static Item Parse(string jsonStr)
         {
-            //Match match = Regex.Match(json, "^{\"cmd\":\"(?<Type>.+?)\",(?<Info>.+)}$");
             dynamic json = JsonParser.Parse(jsonStr);
             if (Enum.TryParse(json.cmd, out Item.Types type))
             {
@@ -136,7 +135,7 @@ namespace BiliLiveHelper
                 switch (type)
                 {
                     case Item.Types.DANMU_MSG:
-                        content = new Danmaku(new User((uint)json.info[2][0], Regex.Unescape(json.info[2][1])), Regex.Unescape(json.info[1]), (uint)json.info[7]);
+                        content = new Danmaku(new User((uint)json.info[2][0], Regex.Unescape(json.info[2][1])), Regex.Unescape(json.info[1]), (uint)json.info[0][9]);
                         break;
                     case Item.Types.SEND_GIFT:
                         content = new Gift(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.giftName), (uint)json.data.num);
