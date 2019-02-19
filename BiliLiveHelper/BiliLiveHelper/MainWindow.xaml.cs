@@ -200,8 +200,8 @@ namespace BiliLiveHelper
             switch (msg)
             {
                 case WM_NCHITTEST:
-                    this.mousePoint.X = (Int16)(lParam.ToInt32() & 0xFFFF);
-                    this.mousePoint.Y = (Int16)(lParam.ToInt32() >> 16);
+                    this.mousePoint.X = (Int16)(lParam.ToInt32() & 0xFFFF) / ((float)Screen.DpiY / Screen.UNSCALED_DPI);
+                    this.mousePoint.Y = (Int16)(lParam.ToInt32() >> 16) / ((float)Screen.DpiY / Screen.UNSCALED_DPI);
                     // Empty
                     if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
                         || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
@@ -213,7 +213,7 @@ namespace BiliLiveHelper
                         || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset)
                     {
                         handled = true;
-                        return new IntPtr((int)HitTest.HTTRANSPARENT);
+                        return new IntPtr((int)HitTest.HTCLIENT);
                     }
                     // TopLeft
                     if (this.mousePoint.Y - this.Top <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
