@@ -141,7 +141,7 @@ namespace BiliLiveHelper
                         content = new Gift(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.giftName), (uint)json.data.num);
                         break;
                     case Item.Types.COMBO_END:
-                        content = new GiftCombo(new User(0, json.data.uname), Regex.Unescape(json.data.gift_name), (uint)json.data.combo_num);
+                        content = new GiftCombo(new User(0, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.gift_name), (uint)json.data.combo_num);
                         break;
                     case Item.Types.WELCOME:
                         content = new Welcome(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)));
