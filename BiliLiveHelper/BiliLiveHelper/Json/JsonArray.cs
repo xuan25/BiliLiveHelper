@@ -25,12 +25,7 @@ namespace Json
             if (list.Count > (int)indexes[0])
                 result = list[(int)indexes[0]];
             else
-            {
-                result = new JsonArray();
-                while (list.Count < (int)indexes[0])
-                    list.Add(null);
-                list.Add(result);
-            }
+                throw new System.NullReferenceException();
             return true;
         }
 

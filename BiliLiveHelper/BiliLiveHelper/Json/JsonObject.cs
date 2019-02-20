@@ -32,5 +32,23 @@ namespace Json
             return true;
         }
 
+        public override bool TryGetIndex(GetIndexBinder binder, object[] indexes, out object result)
+        {
+            if (dictionary.ContainsKey((string)indexes[0]))
+                result = dictionary[(string)indexes[0]];
+            else
+                throw new System.NullReferenceException();
+            return true;
+        }
+
+        public override bool TrySetIndex(SetIndexBinder binder, object[] indexes, object value)
+        {
+            if (dictionary.ContainsKey((string)indexes[0]))
+                dictionary[(string)indexes[0]] = value;
+            else
+                dictionary.Add((string)indexes[0], value);
+            return true;
+        }
+
     }
 }

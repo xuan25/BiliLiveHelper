@@ -8,7 +8,11 @@ namespace Json
     {
         private static object ToNumber(string num)
         {
-            if (num.Contains("."))
+            if(num.ToLower() == "null")
+            {
+                return null;
+            }
+            else if (num.Contains("."))
             {
                 double.TryParse(num, out double result);
                 return result;
