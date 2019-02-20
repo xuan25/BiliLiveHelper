@@ -8,7 +8,7 @@ namespace Json
     {
         private static object ToNumber(string num)
         {
-            if(num.ToLower() == "null")
+            if(num.Trim().ToLower() == "null")
             {
                 return null;
             }
