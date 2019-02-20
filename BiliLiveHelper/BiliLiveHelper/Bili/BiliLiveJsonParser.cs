@@ -150,7 +150,7 @@ namespace BiliLiveHelper
                         content = new WelcomeGuard(new User((uint)json.data.uid, Regex.Unescape(json.data.username)));
                         break;
                     case Item.Types.ROOM_BLOCK_MSG:
-                        content = new RoomBlock(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), 0);
+                        content = new RoomBlock(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), (uint)json.data["operator"]);
                         break;
                     case Item.Types.GUARD_BUY:
                         content = new GuardBuy(new User((uint)json.data.uid, Regex.Unescape(json.data.username)), json.data.gift_name);
