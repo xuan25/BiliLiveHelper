@@ -3,10 +3,18 @@ using System.Dynamic;
 
 namespace Json
 {
+    /// <summary>
+    /// Class <c>JsonArray</c> models an Array in json.
+    /// Author: Xuan525
+    /// Date: 21/02/2019
+    /// </summary>
     public class JsonArray : DynamicObject
     {
         private List<object> list = new List<object>();
 
+        /// <summary>
+        /// The number of items in the Array
+        /// </summary>
         public int Count
         {
             get
@@ -15,6 +23,10 @@ namespace Json
             }
         }
 
+        /// <summary>
+        /// Add a value to the Array
+        /// </summary>
+        /// <param name="value">The Value</param>
         public void Add(object value)
         {
             list.Add(value);

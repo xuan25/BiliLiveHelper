@@ -3,10 +3,18 @@ using System.Dynamic;
 
 namespace Json
 {
+    /// <summary>
+    /// Class <c>JsonObject</c> models an Object in json.
+    /// Author: Xuan525
+    /// Date: 21/02/2019
+    /// </summary>
     public class JsonObject : DynamicObject
     {
         private Dictionary<string, object> dictionary = new Dictionary<string, object>();
 
+        /// <summary>
+        /// The number of items in the Object
+        /// </summary>
         public int Count
         {
             get
@@ -15,6 +23,11 @@ namespace Json
             }
         }
 
+        /// <summary>
+        /// Add a key-value pair to the Object
+        /// </summary>
+        /// <param name="key">The Key of the key-value pair</param>
+        /// <param name="value">The Value of the key-value pair</param>
         public void Add(string key, object value)
         {
             dictionary.Add(key.ToLower(), value);

@@ -4,22 +4,30 @@ using System.Text;
 
 namespace Json
 {
+    /// <summary>
+    /// Class <c>JsonParser</c> provides parsing methods for converting json strings to C# objects.
+    /// Author: Xuan525
+    /// Date: 21/02/2019
+    /// </summary>
     class JsonParser
     {
-        private static object ToNumber(string num)
+        private static object ToValue(string str)
         {
-            if(num.Trim().ToLower() == "null")
-            {
+            if (str.Trim().ToLower() == "null")
                 return null;
-            }
-            else if (num.Contains("."))
+            if (str.Trim().ToLower() == "true" || str.Trim().ToLower() == "false")
             {
-                double.TryParse(num, out double result);
+                bool.TryParse(str, out bool result);
+                return result;
+            }
+            else if (str.Contains("."))
+            {
+                double.TryParse(str, out double result);
                 return result;
             }
             else
             {
-                long.TryParse(num, out long result);
+                long.TryParse(str, out long result);
                 return result;
             }
         }
@@ -79,10 +87,10 @@ namespace Json
                     {
                         string value = stringBuilder.ToString();
                         stringReader.Read();
-                        return ToNumber(value);
+                        return ToValue(value);
                     }
                     else if (stringReader.Peek() == '}' || stringReader.Peek() == ']')
-                        return ToNumber(stringBuilder.ToString());
+                        return ToValue(stringBuilder.ToString());
                     else
                         stringBuilder.Append((char)stringReader.Read());
                 }
@@ -160,6 +168,19 @@ namespace Json
             return jsonArray;
         }
 
+        /// <summary>
+        /// Parse a json string to an object
+        /// <example>For example:
+        /// <code>
+        ///    dynamic json = JsonParser.Parse(jsonStr);
+        ///    string keyData = json.data;
+        ///    string keyData1 = json["data"];
+        ///    string arrayItem = json.arrayExample[0];
+        /// </code>
+        /// </example>
+        /// </summary>
+        /// <param name="json">Json string</param>
+        /// <returns>Json object</returns>
         public static object Parse(string json)
         {
             StringReader stringReader = new StringReader(json.Trim());
@@ -170,9 +191,7 @@ namespace Json
             else if (stringReader.Peek() == '[')
                 return ParseArray(stringReader);
             else
-            {
                 return null;
-            }
         }
     }
 }
