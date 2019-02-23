@@ -281,7 +281,7 @@
         </Grid.RowDefinitions>
         <Border BorderBrush="#FF47494F" BorderThickness="1" Grid.Row="0" Grid.RowSpan="4"/>
         <Grid x:Name="Header" Grid.Row="0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="Header_PreviewMouseLeftButtonUp" Background="#11ffffff">
-            <TextBlock x:Name="TitleBox" HorizontalAlignment="Stretch" Margin="14,0,50,0" TextWrapping="NoWrap" TextTrimming="WordEllipsis" FontSize="14" Text="弹幕姬" VerticalAlignment="Center"/>
+            <TextBlock x:Name="TitleBox" HorizontalAlignment="Stretch" Margin="14,0,50,0" TextWrapping="NoWrap" TextTrimming="WordEllipsis" FontSize="14" Text="{StaticResource BiliLiveHelper}" VerticalAlignment="Center"/>
             <!--Close Button-->
             <Grid x:Name="CloseBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
                 <Grid.Triggers>
@@ -314,7 +314,7 @@
                 </Path>
             </Grid>
             <!--Setting Button-->
-            <Grid x:Name="SettingBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" ToolTip="设定">
+            <Grid x:Name="SettingBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" ToolTip="{StaticResource Settings}">
                 <Grid.Triggers>
                     <EventTrigger RoutedEvent="Button.MouseEnter">
                         <BeginStoryboard Storyboard="{StaticResource SettingBtnMouseEnter}"/>
@@ -347,7 +347,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="80"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="请输入房间号" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="{StaticResource RoomIdHint}" VerticalAlignment="Center" IsHitTestVisible="False"/>
                 <TextBox x:Name="RoomIdBox" Style="{StaticResource TextBoxStyle}" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" TextChanged="RoomIdBox_TextChanged"/>
                 <Grid x:Name="InfoGrid" Grid.Column="0" Background="Transparent" Visibility="Hidden" Cursor="Hand" MouseLeftButtonDown="InfoGrid_MouseLeftButtonDown">
                     <Grid.RowDefinitions>
@@ -358,7 +358,7 @@
                     <TextBlock Grid.Row="1" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center"/>
                     <TextBlock Grid.Row="1" x:Name="PopularityBox" HorizontalAlignment="Left" Margin="50,0,0,0" TextWrapping="Wrap" FontSize="14" Text="0" VerticalAlignment="Center"/>
                 </Grid>
-                <Button Grid.Column="1" x:Name="ConnectBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="连接" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ConnectBtn_Click"/>
+                <Button Grid.Column="1" x:Name="ConnectBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource Connect}" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ConnectBtn_Click"/>
             </Grid>
         </Grid>
 
@@ -388,20 +388,20 @@
                         </Rectangle.Fill>
                     </Rectangle>
                     <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0,0,0,1" BorderBrush="#FF47494F"/>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="设定" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="列表显示数量上限 (条) :" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{StaticResource Settings}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{StaticResource SettingListCount}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <TextBox x:Name="ListCapacitySettingBox" Grid.Row="1" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="历史记录条数上限 (条) :" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{StaticResource SettingHistoryCount}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <TextBox x:Name="HistoryCapacitySettingBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="连接超时时间 (秒) :" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{StaticResource SettingRetryInterval}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <TextBox x:Name="TimeoutSettingBox" Grid.Row="3" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="重连间隔时间 (秒) :" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Row="4" Grid.Column="0" Text="{StaticResource SettingRetryInterval}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
                     <TextBox x:Name="RetryIntervalSettingBox" Grid.Row="4" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <Button Grid.Row="5" Grid.Column="0" x:Name="ClearDanmakuBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空弹幕" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearDanmakuBtn_Click"/>
-                    <Button Grid.Row="5" Grid.Column="0" x:Name="ClearGiftBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空礼物" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="ClearGiftBtn_Click"/>
-                    <Button Grid.Row="5" Grid.Column="1" x:Name="ClearHistoryBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="清空历史" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearHistoryBtn_Click"/>
-                    <Button Grid.Row="6" Grid.Column="0" x:Name="ConfirmSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="确定" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ConfirmSettingBtn_Click"/>
-                    <Button Grid.Row="6" Grid.Column="0" x:Name="CancelSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="取消" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="CancelSettingBtn_Click"/>
+                    <Button Grid.Row="5" Grid.Column="0" x:Name="ClearDanmakuBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearDanmaku}" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearDanmakuBtn_Click"/>
+                    <Button Grid.Row="5" Grid.Column="0" x:Name="ClearGiftBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearGift}" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="ClearGiftBtn_Click"/>
+                    <Button Grid.Row="5" Grid.Column="1" x:Name="ClearHistoryBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearHistory}" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearHistoryBtn_Click"/>
+                    <Button Grid.Row="6" Grid.Column="0" x:Name="ConfirmSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingConfirm}" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ConfirmSettingBtn_Click"/>
+                    <Button Grid.Row="6" Grid.Column="0" x:Name="CancelSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingCancel}" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="CancelSettingBtn_Click"/>
                 </Grid>
             </Border>
         </ScrollViewer>
@@ -422,37 +422,32 @@
             <ListBox Grid.Row="0" x:Name="DanmakuBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="发送者" Foreground="#FFADBCD9"/>
-                        <Run Text=": " Foreground="#FF818181"/>
-                        <Run Text="弹幕内容" Foreground="#FFFFFFFF"/>
+                        <Run Text="发送者" Foreground="#FFADBCD9"/><Run Text=" : " Foreground="#FF818181"/><Run Text="弹幕内容" Foreground="#FFFFFFFF"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="老爷用户名" Foreground="#FFDC8C32"/>
-                        <Run Text="进入直播间" Foreground="#FFCBDAF7"/>
+                        <Run Text="老爷用户名" Foreground="#FFDC8C32"/><Run Text="{StaticResource JoinedIn}" Foreground="#FFCBDAF7"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="舰长用户名" Foreground="#FF64D2F0"/>
-                        <Run Text="进入直播间" Foreground="#FFCBDAF7"/>
+                        <Run Text="舰长用户名" Foreground="#FF64D2F0"/><Run Text="{StaticResource JoinedIn}" Foreground="#FFCBDAF7"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="违规用户名" Foreground="#FFDC4646"/>
-                        <Run Text="已被禁言" Foreground="#FFDC4646"/>
+                        <Run Text="违规用户名" Foreground="#FFDC4646"/><Run Text="{StaticResource Banned}" Foreground="#FFDC4646"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="连接成功" Foreground="#FF19E62C"/>
+                        <Run Text="{StaticResource Connected}" Foreground="#FF19E62C"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="连接断开" Foreground="#FFE61919"/>
+                        <Run Text="{StaticResource Disconnected}" Foreground="#FFE61919"/>
                     </TextBlock>
                 </ListBoxItem>
             </ListBox>
@@ -467,26 +462,17 @@
             <ListBox Grid.Row="1" x:Name="GiftBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="赠送者" Foreground="#FFC8C83C"/>
-                        <Run Text="赠送" Foreground="#FFCBDAF7"/>
-                        <Run Text="物品" Foreground="#FFFA82BE"/>
-                        <Run Text="x100" Foreground="#FF64D2F0"/>
+                        <Run Text="赠送者" Foreground="#FFC8C83C"/><Run Text="{StaticResource Sent}" Foreground="#FFCBDAF7"/><Run Text="物品" Foreground="#FFFA82BE"/><Run Text=" x100" Foreground="#FF64D2F0"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="赠送者" Foreground="#FFC8C83C"/>
-                        <Run Text="赠送" Foreground="#FFCBDAF7"/>
-                        <Run Text="物品" Foreground="#FFFA82BE"/>
-                        <Run Text="连击" Foreground="#FFDC8C32"/>
-                        <Run Text="x100" Foreground="#FF64D2F0"/>
+                        <Run Text="赠送者" Foreground="#FFC8C83C"/><Run Text="{StaticResource Sent}" Foreground="#FFCBDAF7"/><Run Text="物品" Foreground="#FFFA82BE"/><Run Text="{StaticResource Combo}" Foreground="#FFDC8C32"/><Run Text=" x100" Foreground="#FF64D2F0"/>
                     </TextBlock>
                 </ListBoxItem>
                 <ListBoxItem>
                     <TextBlock>
-                        <Run Text="用户名" Foreground="#FF64D2F0"/>
-                        <Run Text="开通了" Foreground="#FFCBDAF7"/>
-                        <Run Text="舰长" Foreground="#FFFA82BE"/>
+                        <Run Text="用户名" Foreground="#FF64D2F0"/><Run Text="{StaticResource Bought}" Foreground="#FFCBDAF7"/><Run Text="舰长" Foreground="#FFFA82BE"/>
                     </TextBlock>
                 </ListBoxItem>
             </ListBox>
@@ -498,8 +484,7 @@
                         <GradientStop Color="#00E6903E" Offset="1" />
                     </LinearGradientBrush>
                 </TextBlock.Background>
-                <Run x:Name="RhythmStormTextBox" Text="节奏风暴" Foreground="#FF1F87C1"/>
-                <Run x:Name="RhythmStormCountBox" Text="x100" Foreground="#FFD6406A"/>
+                <Run x:Name="RhythmStormTextBox" Text="节奏风暴" Foreground="#FF1F87C1"/><Run x:Name="RhythmStormCountBox" Text=" x100" Foreground="#FFD6406A"/>
             </TextBlock>
         </Grid>
 
@@ -508,9 +493,9 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="CPU: " VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=CpuUsage, Path=Visibility}"/>
+            <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="{StaticResource CPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=CpuUsage, Path=Visibility}"/>
             <TextBlock x:Name="CpuUsage" Grid.Column="0" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-            <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="GPU: " VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=GpuUsage, Path=Visibility}"/>
+            <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{StaticResource GPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=GpuUsage, Path=Visibility}"/>
             <TextBlock x:Name="GpuUsage" Grid.Column="1" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
         </Grid>
     </Grid>

@@ -97,8 +97,7 @@ namespace BiliLiveHelper
 
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
-
-            ConnectBtn.Content = "载入中...";
+            ConnectBtn.Content = Application.Current.Resources["Loading"].ToString();
             ConnectBtn.IsEnabled = false;
             RoomIdBox.IsEnabled = false;
 
@@ -290,11 +289,11 @@ namespace BiliLiveHelper
         {
             if (RoomIdBox.Text.Length == 0)
             {
-                AppendMessage("请输入直播间房间号", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                AppendMessage(Application.Current.Resources["RoomIdHint"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
                 return;
             }
             ConnectBtn.IsEnabled = false;
-            ConnectBtn.Content = "正在连接...";
+            ConnectBtn.Content = Application.Current.Resources["Connecting"].ToString();
             RoomIdBox.IsEnabled = false;
 
             biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
@@ -309,7 +308,7 @@ namespace BiliLiveHelper
         {
             biliLiveListener.Disconnected += BiliLiveListener_Disconnected;
             ConnectBtn.IsEnabled = false;
-            ConnectBtn.Content = "正在断开...";
+            ConnectBtn.Content = Application.Current.Resources["Disconnecting"].ToString();
             RoomIdBox.IsEnabled = true;
             biliLiveListener.Disconnect();
             if(biliLiveInfo != null)
@@ -323,12 +322,12 @@ namespace BiliLiveHelper
             Dispatcher.Invoke(new Action(() =>
             {
                 ConnectBtn.IsEnabled = true;
-                ConnectBtn.Content = "断开";
+                ConnectBtn.Content = Application.Current.Resources["Disconnect"].ToString();
                 RoomIdBox.Visibility = Visibility.Hidden;
                 InfoGrid.Visibility = Visibility.Visible;
-                TitleBox.Text = "弹幕姬 - " + RoomIdBox.Text;
+                TitleBox.Text = Application.Current.Resources["BiliLiveHelper"].ToString() + " - " + RoomIdBox.Text;
 
-                AppendMessage("已连接", (Color)ColorConverter.ConvertFromString("#FF19E62C"));
+                AppendMessage(Application.Current.Resources["Connected"].ToString(), (Color)ColorConverter.ConvertFromString("#FF19E62C"));
 
                 roomId = uint.Parse(RoomIdBox.Text);
             }));
@@ -349,15 +348,15 @@ namespace BiliLiveHelper
             Dispatcher.Invoke(new Action(() =>
             {
                 ConnectBtn.IsEnabled = true;
-                ConnectBtn.Content = "连接";
+                ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
                 PopularityBox.Text = "0";
-                AreaBox.Text = "正在获取分区...";
+                AreaBox.Text = Application.Current.Resources["LoadingInfo"].ToString();
                 InfoGrid.ToolTip = null;
                 RoomIdBox.Visibility = Visibility.Visible;
                 InfoGrid.Visibility = Visibility.Hidden;
-                TitleBox.Text = "弹幕姬";
+                TitleBox.Text = Application.Current.Resources["BiliLiveHelper"].ToString();
 
-                AppendMessage("已断开", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                AppendMessage(Application.Current.Resources["Disconnected"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
             }));
         }
 
@@ -383,7 +382,7 @@ namespace BiliLiveHelper
                     Thread.Sleep(RetryInterval);
                     Dispatcher.Invoke(new Action(() =>
                     {
-                        AppendMessage("尝试重连", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                        AppendMessage(Application.Current.Resources["Retrying"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
                         biliLiveListener.Disconnect();
                         biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
                         biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
@@ -395,9 +394,9 @@ namespace BiliLiveHelper
                 }
                 else
                 {
-                    AppendMessage("网络连接失败", (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                    AppendMessage(Application.Current.Resources["ConnectionFailed"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
                     Thread.Sleep(RetryInterval);
-                    BiliLiveListener_ConnectionFailed("检测网络");
+                    BiliLiveListener_ConnectionFailed(Application.Current.Resources["CheckingNetwork"].ToString());
                 }
             }
             else
@@ -405,12 +404,12 @@ namespace BiliLiveHelper
                 Dispatcher.Invoke(new Action(() =>
                 {
                     ConnectBtn.IsEnabled = true;
-                    ConnectBtn.Content = "连接";
+                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
                     PopularityBox.Text = "0";
                     RoomIdBox.IsEnabled = true;
                     RoomIdBox.Visibility = Visibility.Visible;
                     InfoGrid.Visibility = Visibility.Hidden;
-                    TitleBox.Text = "弹幕姬";
+                    TitleBox.Text = Application.Current.Resources["BiliLiveHelper"].ToString();
                 }));
             }
         }
@@ -422,9 +421,9 @@ namespace BiliLiveHelper
             Dispatcher.Invoke(new Action(() =>
             {
                 if (info.LiveStatus == 1)
-                    TitleBox.Text = "直播中 - " + info.Title;
+                    TitleBox.Text = Application.Current.Resources["Living"].ToString() + " - " + info.Title;
                 else
-                    TitleBox.Text = "准备中 - " + info.Title;
+                    TitleBox.Text = Application.Current.Resources["Preparing"].ToString() + " - " + info.Title;
                 AreaBox.Text = string.Format("{0} · {1}", info.ParentAreaName, info.AreaName);
                 InfoGrid.ToolTip = Regex.Replace(Regex.Replace(Regex.Unescape(info.Description.Replace("&nbsp;", " ")), @"<[^>]+>|</[^>]+>", string.Empty), @"(\r?\n)+", "\r\n").Trim();
             }));
@@ -539,13 +538,13 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = ": ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF818181")) });
+                textBlock.Inlines.Add(new Run() { Text = " : ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF818181")) });
 
                 Run content = new Run()
                 {
                     Text = danmaku.Content,
                     Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFFFFFF")),
-                    Tag = danmaku.Sender.Name + ": "
+                    Tag = danmaku.Sender.Name + " : "
                 };
                 content.MouseLeftButtonDown += Content_MouseLeftButtonDown;
                 textBlock.Inlines.Add(content);
@@ -608,7 +607,7 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 赠送 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Sent"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
                 textBlock.Inlines.Add(new Run() { Text = gift.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
                 textBlock.Inlines.Add(new Run() { Text = " x" + gift.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
 
@@ -637,9 +636,9 @@ namespace BiliLiveHelper
                 //user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 赠送 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Sent"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
                 textBlock.Inlines.Add(new Run() { Text = giftCombo.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
-                textBlock.Inlines.Add(new Run() { Text = " 连击", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC8C32")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Combo"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC8C32")) });
                 textBlock.Inlines.Add(new Run() { Text = " x" + giftCombo.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
@@ -667,7 +666,7 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["JoinedIn"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
@@ -694,7 +693,7 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 进入直播间", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["JoinedIn"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
@@ -721,7 +720,7 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 已被禁言", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Banned"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFDC4646")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
                 listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
@@ -748,7 +747,7 @@ namespace BiliLiveHelper
                 user.MouseLeftButtonDown += User_MouseLeftButtonDown;
                 textBlock.Inlines.Add(user);
 
-                textBlock.Inlines.Add(new Run() { Text = " 开通了 ", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Bought"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
                 textBlock.Inlines.Add(new Run() { Text = guardBuy.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
 
                 ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
@@ -771,7 +770,7 @@ namespace BiliLiveHelper
                 {
                     Text = message,
                     Foreground = new SolidColorBrush(color),
-                    Tag = "Error: "
+                    Tag = Application.Current.Resources["Error"].ToString()
                 };
                 content.MouseLeftButtonDown += Content_MouseLeftButtonDown;
                 textBlock.Inlines.Add(content);
@@ -1141,7 +1140,7 @@ namespace BiliLiveHelper
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    ConnectBtn.Content = "连接";
+                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
                     ConnectBtn.IsEnabled = true;
                     RoomIdBox.IsEnabled = true;
                 }));
@@ -1160,7 +1159,7 @@ namespace BiliLiveHelper
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
-                    ConnectBtn.Content = "连接";
+                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
                     ConnectBtn.IsEnabled = true;
                     RoomIdBox.IsEnabled = true;
                 }));
@@ -1189,7 +1188,7 @@ namespace BiliLiveHelper
                     Connect();
                 else
                 {
-                    ConnectBtn.Content = "连接";
+                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
                     ConnectBtn.IsEnabled = true;
                     RoomIdBox.IsEnabled = true;
                 }
