@@ -35,11 +35,6 @@ namespace BiliLiveHelper
 
         public string Log;
 
-        private BiliLiveJsonParser.Gift latestGift;
-        private ListBoxItem latestGiftListBoxItem;
-        private Thread clearLatestthread;
-        private bool IsLatestSurvival = false;
-
         [Serializable]
         private class Status
         {
@@ -91,6 +86,7 @@ namespace BiliLiveHelper
             RecievedItems = new List<BiliLiveJsonParser.Item>();
             Log = string.Empty;
             rhythmStormCount = 0;
+            IsLatestSurvival = false;
 
             LoadConfig();
         }
@@ -588,19 +584,24 @@ namespace BiliLiveHelper
                 {
                     while (true)
                     {
-                        Thread.Sleep(1000);
                         if (DateTime.Now > lastRhythmTime.AddSeconds(IntegrationTime/1000))
                         {
                             rhythmStormCount = 0;
                             rhythmStormThread = null;
                             break;
                         }
+                        Thread.Sleep(0);
                     }
                 });
                 rhythmStormThread.Start();
             }
         }
 
+        private BiliLiveJsonParser.Gift latestGift;
+        private ListBoxItem latestGiftListBoxItem;
+        private bool IsLatestSurvival;
+        private Thread latestGiftThread;
+        private DateTime latestGiftTime;
         private void AppendGift(BiliLiveJsonParser.Gift gift)
         {
             if (IsLatestSurvival && latestGift != null && latestGift.Sender.Id == gift.Sender.Id && latestGift.GiftName == gift.GiftName)
@@ -648,15 +649,25 @@ namespace BiliLiveHelper
             }
             latestGift = gift;
 
+            latestGiftTime = DateTime.Now;
             IsLatestSurvival = true;
-            if (clearLatestthread != null)
-                clearLatestthread.Abort();
-            clearLatestthread = new Thread(delegate ()
+            if (latestGiftThread == null)
             {
-                Thread.Sleep(IntegrationTime);
-                IsLatestSurvival = false;
-            });
-            clearLatestthread.Start();
+                latestGiftThread = new Thread(delegate ()
+                {
+                    while (true)
+                    {
+                        if (DateTime.Now > latestGiftTime.AddSeconds(IntegrationTime / 1000))
+                        {
+                            IsLatestSurvival = false;
+                            latestGiftThread = null;
+                            break;
+                        }
+                        Thread.Sleep(0);
+                    }
+                });
+                latestGiftThread.Start();
+            }
         }
 
         private void AppendGiftCombo(BiliLiveJsonParser.GiftCombo giftCombo)
