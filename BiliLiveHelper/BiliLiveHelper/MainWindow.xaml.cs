@@ -31,7 +31,7 @@ namespace BiliLiveHelper
         private uint HistoryCapacity = 1000;
         private int Timeout = 10000;
         private int RetryInterval = 3000;
-        private int IntegrationTime = 5000;
+        private int IntegrationTime = 10000;
 
         public string Log;
 
@@ -589,7 +589,7 @@ namespace BiliLiveHelper
                     while (true)
                     {
                         Thread.Sleep(1000);
-                        if (DateTime.Now > lastRhythmTime.AddSeconds(10))
+                        if (DateTime.Now > lastRhythmTime.AddSeconds(IntegrationTime/1000))
                         {
                             rhythmStormCount = 0;
                             rhythmStormThread = null;
