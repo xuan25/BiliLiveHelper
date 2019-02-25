@@ -592,33 +592,54 @@ namespace BiliLiveHelper
             }
         }
 
+        private BiliLiveJsonParser.Gift latestGift;
+        private ListBoxItem latestGiftListBoxItem;
         private void AppendGift(BiliLiveJsonParser.Gift gift)
         {
-            Dispatcher.Invoke(new Action(() =>
+            if (latestGift != null && latestGift.Sender.Id == gift.Sender.Id && latestGift.GiftName == gift.GiftName)
             {
-                TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap};
-
-                Run user = new Run()
+                Dispatcher.Invoke(new Action(() =>
                 {
-                    Text = gift.Sender.Name,
-                    Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC8C83C")),
-                    Tag = gift.Sender.Id
-                };
-                user.MouseLeftButtonDown += User_MouseLeftButtonDown;
-                textBlock.Inlines.Add(user);
+                    TextBlock textBlock = (TextBlock)latestGiftListBoxItem.Content;
+                    Run run = (Run)textBlock.Inlines.LastInline;
+                    uint number = uint.Parse(run.Text);
+                    uint newNumber = number + gift.Number;
+                    run.Text = newNumber.ToString();
 
-                textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Sent"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
-                textBlock.Inlines.Add(new Run() { Text = gift.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
-                textBlock.Inlines.Add(new Run() { Text = " x" + gift.Number, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
+                    ListBoxItem_Loaded(latestGiftListBoxItem, null);
+                }));
+            }
+            else
+            {
+                Dispatcher.Invoke(new Action(() =>
+                {
+                    TextBlock textBlock = new TextBlock() { TextWrapping = TextWrapping.Wrap };
 
-                ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
-                listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
-                listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
-                listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
-                listBoxItem.Loaded += ListBoxItem_Loaded;
-                GiftBox.Items.Add(listBoxItem);
-                RefreshScroll(GiftBox);
-            }));
+                    Run user = new Run()
+                    {
+                        Text = gift.Sender.Name,
+                        Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFC8C83C")),
+                        Tag = gift.Sender.Id
+                    };
+                    user.MouseLeftButtonDown += User_MouseLeftButtonDown;
+                    textBlock.Inlines.Add(user);
+
+                    textBlock.Inlines.Add(new Run() { Text = Application.Current.Resources["Sent"].ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFCBDAF7")) });
+                    textBlock.Inlines.Add(new Run() { Text = gift.GiftName, Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FFFA82BE")) });
+                    textBlock.Inlines.Add(new Run() { Text = " x", Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
+                    textBlock.Inlines.Add(new Run() { Text = gift.Number.ToString(), Foreground = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#FF64D2F0")) });
+
+                    ListBoxItem listBoxItem = new ListBoxItem() { Content = textBlock, HorizontalContentAlignment = HorizontalAlignment.Left, VerticalContentAlignment = VerticalAlignment.Center };
+                    listBoxItem.MouseRightButtonUp += ListBoxItem_MouseRightButtonUp;
+                    listBoxItem.MouseLeftButtonUp += ListBoxItem_MouseLeftButtonUp;
+                    listBoxItem.MouseLeave += ListBoxItem_MouseLeave;
+                    listBoxItem.Loaded += ListBoxItem_Loaded;
+                    GiftBox.Items.Add(listBoxItem);
+                    RefreshScroll(GiftBox);
+                    latestGiftListBoxItem = listBoxItem;
+                }));
+            }
+            latestGift = gift;
         }
 
         private void AppendGiftCombo(BiliLiveJsonParser.GiftCombo giftCombo)
