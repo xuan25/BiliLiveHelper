@@ -594,8 +594,19 @@ namespace BiliLiveHelper
 
         private BiliLiveJsonParser.Gift latestGift;
         private ListBoxItem latestGiftListBoxItem;
+        private Thread clearLatestthread;
         private void AppendGift(BiliLiveJsonParser.Gift gift)
         {
+            if (clearLatestthread != null)
+                clearLatestthread.Abort();
+            clearLatestthread = new Thread(delegate ()
+            {
+                Thread.Sleep(5000);
+                latestGift = null;
+                latestGiftListBoxItem = null;
+            });
+            clearLatestthread.Start();
+
             if (latestGift != null && latestGift.Sender.Id == gift.Sender.Id && latestGift.GiftName == gift.GiftName)
             {
                 Dispatcher.Invoke(new Action(() =>
