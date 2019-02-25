@@ -37,6 +37,7 @@
     <sys:String x:Key="SettingHistoryCount">历史记录条数上限&#160;(条)&#160;:</sys:String>
     <sys:String x:Key="SettingConnectionTimeout">连接超时时间&#160;(秒)&#160;:</sys:String>
     <sys:String x:Key="SettingRetryInterval">重连间隔时间&#160;(秒)&#160;:</sys:String>
+    <sys:String x:Key="IntegrationTime">增量间隔时间&#160;(秒)&#160;:</sys:String>
     <sys:String x:Key="SettingClearDanmaku">清空弹幕</sys:String>
     <sys:String x:Key="SettingClearGift">清空礼物</sys:String>
     <sys:String x:Key="SettingClearHistory">清空历史</sys:String>

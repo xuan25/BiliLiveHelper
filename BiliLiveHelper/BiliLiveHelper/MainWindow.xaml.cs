@@ -26,12 +26,19 @@ namespace BiliLiveHelper
         private bool IsConnected;
         private List<BiliLiveJsonParser.Item> RecievedItems;
         private PerformanceMonitor proformanceMonitor;
-        private int Timeout = 10000;
-        private int RetryInterval = 3000;
+        
         private uint ListCapacity = 1000;
         private uint HistoryCapacity = 1000;
+        private int Timeout = 10000;
+        private int RetryInterval = 3000;
+        private int IntegrationTime = 5000;
 
         public string Log;
+
+        private BiliLiveJsonParser.Gift latestGift;
+        private ListBoxItem latestGiftListBoxItem;
+        private Thread clearLatestthread;
+        private bool IsLatestSurvival = false;
 
         [Serializable]
         private class Status
@@ -60,8 +67,9 @@ namespace BiliLiveHelper
             public uint HistoryCapacity;
             public int Timeout;
             public int RetryInterval;
+            public int IntegrationTime;
 
-            public Config(double left, double top, double width, double height, uint listCapacity, uint historyCapacity, int timeout, int retryInterval)
+            public Config(double left, double top, double width, double height, uint listCapacity, uint historyCapacity, int timeout, int retryInterval, int integrationTime)
             {
                 Left = left;
                 Top = top;
@@ -72,6 +80,7 @@ namespace BiliLiveHelper
                 HistoryCapacity = historyCapacity;
                 Timeout = timeout;
                 RetryInterval = retryInterval;
+                IntegrationTime = integrationTime;
             }
         }
 
@@ -592,22 +601,9 @@ namespace BiliLiveHelper
             }
         }
 
-        private BiliLiveJsonParser.Gift latestGift;
-        private ListBoxItem latestGiftListBoxItem;
-        private Thread clearLatestthread;
         private void AppendGift(BiliLiveJsonParser.Gift gift)
         {
-            if (clearLatestthread != null)
-                clearLatestthread.Abort();
-            clearLatestthread = new Thread(delegate ()
-            {
-                Thread.Sleep(5000);
-                latestGift = null;
-                latestGiftListBoxItem = null;
-            });
-            clearLatestthread.Start();
-
-            if (latestGift != null && latestGift.Sender.Id == gift.Sender.Id && latestGift.GiftName == gift.GiftName)
+            if (IsLatestSurvival && latestGift != null && latestGift.Sender.Id == gift.Sender.Id && latestGift.GiftName == gift.GiftName)
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
@@ -651,6 +647,16 @@ namespace BiliLiveHelper
                 }));
             }
             latestGift = gift;
+
+            IsLatestSurvival = true;
+            if (clearLatestthread != null)
+                clearLatestthread.Abort();
+            clearLatestthread = new Thread(delegate ()
+            {
+                Thread.Sleep(IntegrationTime);
+                IsLatestSurvival = false;
+            });
+            clearLatestthread.Start();
         }
 
         private void AppendGiftCombo(BiliLiveJsonParser.GiftCombo giftCombo)
@@ -938,6 +944,7 @@ namespace BiliLiveHelper
                 HistoryCapacitySettingBox.Text = HistoryCapacity.ToString();
                 TimeoutSettingBox.Text = (Timeout / 1000).ToString();
                 RetryIntervalSettingBox.Text = (RetryInterval / 1000).ToString();
+                IntegrationTimeSettingBox.Text = (IntegrationTime / 1000).ToString();
                 ShowSetting();
             }
         }
@@ -970,6 +977,7 @@ namespace BiliLiveHelper
             HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
             Timeout = int.Parse(TimeoutSettingBox.Text) * 1000;
             RetryInterval = int.Parse(RetryIntervalSettingBox.Text) * 1000;
+            IntegrationTime = int.Parse(IntegrationTimeSettingBox.Text) * 1000;
             HideSetting();
             while (RecievedItems.Count > HistoryCapacity)
                 RecievedItems.RemoveAt(0);
@@ -978,7 +986,7 @@ namespace BiliLiveHelper
             while (GiftBox.Items.Count > ListCapacity)
                 GiftBox.Items.RemoveAt(0);
 
-            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval);
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval, this.IntegrationTime);
             SaveConfig(config);
         }
 
@@ -1045,6 +1053,11 @@ namespace BiliLiveHelper
                 e.Handled = true;
                 ConfirmSetting();
             }
+            else if (sender == IntegrationTimeSettingBox && e.Key == Key.Enter)
+            {
+                e.Handled = true;
+                ConfirmSetting();
+            }
         }
 
         private void NumberBox_PreviewTextInput(object sender, TextCompositionEventArgs e)
@@ -1079,7 +1092,7 @@ namespace BiliLiveHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval);
+            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval, this.IntegrationTime);
             Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
             if (IsConnected)
                 Disconnect();
@@ -1151,6 +1164,7 @@ namespace BiliLiveHelper
             this.HistoryCapacity = config.HistoryCapacity;
             this.Timeout = config.Timeout;
             this.RetryInterval = config.RetryInterval;
+            this.IntegrationTime = config.IntegrationTime;
         }
 
         private void SaveStatus(Status status)
