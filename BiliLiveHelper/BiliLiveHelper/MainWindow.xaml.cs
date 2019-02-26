@@ -590,7 +590,7 @@ namespace BiliLiveHelper
                             rhythmStormThread = null;
                             break;
                         }
-                        Thread.Sleep(0);
+                        Thread.Sleep(1);
                     }
                 });
                 rhythmStormThread.Start();
@@ -663,7 +663,7 @@ namespace BiliLiveHelper
                             latestGiftThread = null;
                             break;
                         }
-                        Thread.Sleep(0);
+                        Thread.Sleep(1);
                     }
                 });
                 latestGiftThread.Start();
