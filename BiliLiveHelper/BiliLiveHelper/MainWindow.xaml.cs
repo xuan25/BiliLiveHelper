@@ -463,7 +463,7 @@ namespace BiliLiveHelper
             if (item != null)
             {
                 // If not Rhythm storm
-                if (!(item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG && ((BiliLiveJsonParser.Danmaku)item.Content).Type != 0))
+                if (!(item.GetType() == typeof(BiliLiveJsonParser.Danmaku) && ((BiliLiveJsonParser.Danmaku)item).Type != 0))
                 {
                     RecievedItems.Add(item);
                     while (RecievedItems.Count > HistoryCapacity)
@@ -471,7 +471,7 @@ namespace BiliLiveHelper
 
                     Dispatcher.Invoke(new Action(() =>
                     {
-                        if (item.Type == BiliLiveJsonParser.Item.Types.DANMU_MSG || item.Type == BiliLiveJsonParser.Item.Types.WELCOME || item.Type == BiliLiveJsonParser.Item.Types.WELCOME_GUARD || item.Type == BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG)
+                        if (item.GetType() == typeof(BiliLiveJsonParser.Danmaku) || item.GetType() == typeof(BiliLiveJsonParser.Welcome) || item.GetType() == typeof(BiliLiveJsonParser.WelcomeGuard) || item.GetType() == typeof(BiliLiveJsonParser.RoomBlock))
                             while (DanmakuBox.Items.Count >= ListCapacity)
                             {
                                 RemoveFirstItem(DanmakuBox);
@@ -483,32 +483,36 @@ namespace BiliLiveHelper
                             }
                     }));
                 }
-                    
-                switch (item.Type)
+
+                switch (item.Cmd)
                 {
-                    case BiliLiveJsonParser.Item.Types.DANMU_MSG:
-                        AppendDanmaku((BiliLiveJsonParser.Danmaku)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.DANMU_MSG:
+                        AppendDanmaku((BiliLiveJsonParser.Danmaku)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.SEND_GIFT:
-                        AppendGift((BiliLiveJsonParser.Gift)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.SEND_GIFT:
+                        AppendGift((BiliLiveJsonParser.Gift)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.COMBO_END:
-                        AppendGiftCombo((BiliLiveJsonParser.GiftCombo)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.COMBO_END:
+                        AppendGiftCombo((BiliLiveJsonParser.GiftCombo)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.WELCOME:
-                        AppendWelcome((BiliLiveJsonParser.Welcome)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.WELCOME:
+                        AppendWelcome((BiliLiveJsonParser.Welcome)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.WELCOME_GUARD:
-                        AppendWelcomeGuard((BiliLiveJsonParser.WelcomeGuard)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.WELCOME_GUARD:
+                        AppendWelcomeGuard((BiliLiveJsonParser.WelcomeGuard)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.ROOM_BLOCK_MSG:
-                        AppendRoomBlock((BiliLiveJsonParser.RoomBlock)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.ROOM_BLOCK_MSG:
+                        AppendRoomBlock((BiliLiveJsonParser.RoomBlock)item);
                         break;
-                    case BiliLiveJsonParser.Item.Types.GUARD_BUY:
-                        AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item.Content);
+                    case BiliLiveJsonParser.Item.Cmds.GUARD_BUY:
+                        AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item);
+                        break;
+                    case BiliLiveJsonParser.Item.Cmds.UNKNOW:
+                        AppendMessage(item.Json, (Color)ColorConverter.ConvertFromString("#FFC8C83C"));
+                        break;
+                    default:
                         break;
                 }
-                
             }
         }
 

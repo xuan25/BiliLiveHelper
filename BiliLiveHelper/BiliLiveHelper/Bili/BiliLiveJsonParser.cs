@@ -9,14 +9,35 @@ namespace BiliLiveHelper
         [Serializable]
         public class Item
         {
-            public enum Types { DANMU_MSG, SEND_GIFT, SPECIAL_GIFT, USER_TOAST_MSG, GUARD_MSG, GUARD_BUY, GUARD_LOTTERY_START, WELCOME, WELCOME_GUARD, ENTRY_EFFECT, SYS_MSG, ROOM_BLOCK_MSG, COMBO_SEND, COMBO_END, ROOM_RANK, TV_START, NOTICE_MSG }
-            public Types Type;
-            public object Content;
-
-            public Item(Types type, object content)
+            public enum Cmds
             {
-                Type = type;
-                Content = content;
+                UNKNOW,
+                DANMU_MSG,
+                SEND_GIFT,
+                SPECIAL_GIFT,
+                USER_TOAST_MSG,
+                GUARD_MSG,
+                GUARD_BUY,
+                GUARD_LOTTERY_START,
+                WELCOME,
+                WELCOME_GUARD,
+                ENTRY_EFFECT,
+                SYS_MSG,
+                ROOM_BLOCK_MSG,
+                COMBO_SEND,
+                COMBO_END,
+                ROOM_RANK,
+                TV_START,
+                NOTICE_MSG
+            }
+
+            public Cmds Cmd;
+            public string Json;
+
+            public Item(Cmds cmd, string json)
+            {
+                Cmd = cmd;
+                Json = json;
             }
         }
 
@@ -34,13 +55,13 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
-        public class Danmaku
+        public class Danmaku : Item
         {
             public User Sender;
             public string Content;
             public uint Type;
 
-            public Danmaku(User sender, string content, uint type)
+            public Danmaku(string json, User sender, string content, uint type) : base(Cmds.DANMU_MSG, json)
             {
                 Sender = sender;
                 Content = content;
@@ -49,13 +70,13 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
-        public class GiftCombo
+        public class GiftCombo : Item
         {
             public User Sender;
             public string GiftName;
             public uint Number;
 
-            public GiftCombo(User sender, string giftName, uint number)
+            public GiftCombo(string json, User sender, string giftName, uint number) : base(Cmds.COMBO_END, json)
             {
                 Sender = sender;
                 GiftName = giftName;
@@ -64,13 +85,13 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
-        public class Gift
+        public class Gift : Item
         {
             public User Sender;
             public string GiftName;
             public uint Number;
 
-            public Gift(User sender, string giftName, uint number)
+            public Gift(string json, User sender, string giftName, uint number) : base(Cmds.SEND_GIFT, json)
             {
                 Sender = sender;
                 GiftName = giftName;
@@ -79,34 +100,34 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
-        public class Welcome
+        public class Welcome : Item
         {
             public User User;
 
-            public Welcome(User user)
+            public Welcome(string json, User user) : base(Cmds.WELCOME, json)
             {
                 User = user;
             }
         }
 
         [Serializable]
-        public class WelcomeGuard
+        public class WelcomeGuard : Item
         {
             public User User;
 
-            public WelcomeGuard(User user)
+            public WelcomeGuard(string json, User user) : base(Cmds.WELCOME_GUARD, json)
             {
                 User = user;
             }
         }
 
         [Serializable]
-        public class RoomBlock
+        public class RoomBlock : Item
         {
             public User User;
             public uint Operator;
 
-            public RoomBlock(User user, uint ope)
+            public RoomBlock(string json, User user, uint ope) : base(Cmds.ROOM_BLOCK_MSG, json)
             {
                 User = user;
                 Operator = ope;
@@ -114,12 +135,12 @@ namespace BiliLiveHelper
         }
 
         [Serializable]
-        public class GuardBuy
+        public class GuardBuy : Item
         {
             public User User;
             public string GiftName;
 
-            public GuardBuy(User user, string giftName)
+            public GuardBuy(string json, User user, string giftName) : base(Cmds.GUARD_BUY, json)
             {
                 User = user;
                 GiftName = giftName;
@@ -128,38 +149,46 @@ namespace BiliLiveHelper
 
         public static Item Parse(string jsonStr)
         {
-            dynamic json = JsonParser.Parse(jsonStr);
-            if (Enum.TryParse(json.cmd, out Item.Types type))
+            try
             {
-                object content = null;
-                switch (type)
+                dynamic json = JsonParser.Parse(jsonStr);
+                switch (json.cmd)
                 {
-                    case Item.Types.DANMU_MSG:
-                        content = new Danmaku(new User((uint)json.info[2][0], Regex.Unescape(json.info[2][1])), Regex.Unescape(json.info[1]), (uint)json.info[0][9]);
-                        break;
-                    case Item.Types.SEND_GIFT:
-                        content = new Gift(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.giftName), (uint)json.data.num);
-                        break;
-                    case Item.Types.COMBO_END:
-                        content = new GiftCombo(new User(0, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.gift_name), (uint)json.data.combo_num);
-                        break;
-                    case Item.Types.WELCOME:
-                        content = new Welcome(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)));
-                        break;
-                    case Item.Types.WELCOME_GUARD:
-                        content = new WelcomeGuard(new User((uint)json.data.uid, Regex.Unescape(json.data.username)));
-                        break;
-                    case Item.Types.ROOM_BLOCK_MSG:
-                        content = new RoomBlock(new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), (uint)json.data["operator"]);
-                        break;
-                    case Item.Types.GUARD_BUY:
-                        content = new GuardBuy(new User((uint)json.data.uid, Regex.Unescape(json.data.username)), json.data.gift_name);
-                        break;
+                    case "DANMU_MSG":
+                        return new Danmaku(jsonStr, new User((uint)json.info[2][0], Regex.Unescape(json.info[2][1])), Regex.Unescape(json.info[1]), (uint)json.info[0][9]);
+                    case "SEND_GIFT":
+                        return new Gift(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.giftName), (uint)json.data.num);
+                    case "COMBO_END":
+                        return new GiftCombo(jsonStr, new User(0, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.gift_name), (uint)json.data.combo_num);
+                    case "WELCOME":
+                        return new Welcome(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)));
+                    case "WELCOME_GUARD":
+                        return new WelcomeGuard(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.username)));
+                    case "ROOM_BLOCK_MSG":
+                        return new RoomBlock(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), (uint)json.data["operator"]);
+                    case "GUARD_BUY":
+                        return new GuardBuy(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.username)), json.data.gift_name);
+                    case "SPECIAL_GIFT":
+                    case "USER_TOAST_MSG":
+                    case "GUARD_MSG":
+                    case "GUARD_LOTTERY_START":
+                    case "ENTRY_EFFECT":
+                    case "SYS_MSG":
+                    case "COMBO_SEND":
+                    case "ROOM_RANK":
+                    case "TV_START":
+                    case "NOTICE_MSG":
+                        return new Item(Enum.Parse(typeof(Item.Cmds), json.cmd), jsonStr);
+                    default:
+                        return new Item(Item.Cmds.UNKNOW, jsonStr);
+
                 }
-                return new Item(type, content);
             }
-            else
+            catch (Exception)
+            {
                 return null;
+            }
+            
         }
     }
 }
