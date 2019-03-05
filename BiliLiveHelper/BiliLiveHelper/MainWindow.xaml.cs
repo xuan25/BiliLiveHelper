@@ -163,115 +163,13 @@ namespace BiliLiveHelper
             }
         }
 
-        private const int WM_NCHITTEST = 0x0084;
-        public enum HitTest : int
-        {
-            HTERROR = -2,
-            HTTRANSPARENT = -1,
-            HTNOWHERE = 0,
-            HTCLIENT = 1,
-            HTCAPTION = 2,
-            HTSYSMENU = 3,
-            HTGROWBOX = 4,
-            HTSIZE = HTGROWBOX,
-            HTMENU = 5,
-            HTHSCROLL = 6,
-            HTVSCROLL = 7,
-            HTMINBUTTON = 8,
-            HTMAXBUTTON = 9,
-            HTLEFT = 10,
-            HTRIGHT = 11,
-            HTTOP = 12,
-            HTTOPLEFT = 13,
-            HTTOPRIGHT = 14,
-            HTBOTTOM = 15,
-            HTBOTTOMLEFT = 16,
-            HTBOTTOMRIGHT = 17,
-            HTBORDER = 18,
-            HTREDUCE = HTMINBUTTON,
-            HTZOOM = HTMAXBUTTON,
-            HTSIZEFIRST = HTLEFT,
-            HTSIZELAST = HTBOTTOMRIGHT,
-            HTOBJECT = 19,
-            HTCLOSE = 20,
-            HTHELP = 21,
-        }
-        private readonly int borderThickness = 16;
-        private readonly int borderOffset = 8;
-        private Point mousePoint = new Point();
         protected IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
         {
             switch (msg)
             {
-                case WM_NCHITTEST:
-                    this.mousePoint.X = (Int16)(lParam.ToInt32() & 0xFFFF) / ((float)Screen.DpiY / Screen.UNSCALED_DPI);
-                    this.mousePoint.Y = (Int16)(lParam.ToInt32() >> 16) / ((float)Screen.DpiY / Screen.UNSCALED_DPI);
-                    // Empty
-                    if(this.mousePoint.Y - this.Top <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
-                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset && this.mousePoint.X - this.Left <= this.borderOffset
-                        || this.mousePoint.Y - this.Top <= this.borderOffset && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
-                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset
-                        || this.mousePoint.X - this.Left <= this.borderOffset
-                        || this.ActualWidth + this.Left - this.mousePoint.X <= this.borderOffset
-                        || this.mousePoint.Y - this.Top <= this.borderOffset
-                        || this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderOffset)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTCLIENT);
-                    }
-                    // TopLeft
-                    if (this.mousePoint.Y - this.Top <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTTOPLEFT);
-                    }
-                    // BottomLeft    
-                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness && this.mousePoint.X - this.Left <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTBOTTOMLEFT);
-                    }
-                    // TopRight
-                    else if (this.mousePoint.Y - this.Top <= this.borderThickness && this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTTOPRIGHT);
-                    }
-                    // BottomRight
-                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness && this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTBOTTOMRIGHT);
-                    }
-                    // Left
-                    else if (this.mousePoint.X - this.Left <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTLEFT);
-                    }
-                    // Right
-                    else if (this.ActualWidth + this.Left - this.mousePoint.X <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTRIGHT);
-                    }
-                    // Top
-                    else if (this.mousePoint.Y - this.Top <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTTOP);
-                    }
-                    // Bottom
-                    else if (this.ActualHeight + this.Top - this.mousePoint.Y <= this.borderThickness)
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTBOTTOM);
-                    }
-                    else // Inside
-                    {
-                        handled = true;
-                        return new IntPtr((int)HitTest.HTCLIENT);
-                    }
+                case HitTest.WM_NCHITTEST:
+                    handled = true;
+                    return HitTest.Hit(lParam, this.Top, this.Left, this.ActualHeight, this.ActualWidth);
             }
             return IntPtr.Zero;
         }

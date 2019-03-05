@@ -54,6 +54,7 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Framework\HitTest.cs" />
     <Compile Include="Framework\Screen.cs" />
     <Compile Include="Json\JsonArray.cs" />
     <Compile Include="Json\JsonObject.cs" />
