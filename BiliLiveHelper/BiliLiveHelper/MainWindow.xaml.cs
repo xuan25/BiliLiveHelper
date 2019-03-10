@@ -242,7 +242,7 @@ namespace BiliLiveHelper
                 info = biliLiveInfo.GetInfo(Timeout);
             BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
-            biliLiveInfo.StartInfoListener(Timeout, Timeout);
+            biliLiveInfo.StartInfoListener(Timeout, 30*1000);
         }
 
         private void BiliLiveListener_Disconnected()
