@@ -230,7 +230,7 @@ namespace BiliLiveHelper
                 InfoGrid.Visibility = Visibility.Visible;
                 TitleBox.Text = Application.Current.Resources["BiliLiveHelper"].ToString() + " - " + RoomIdBox.Text;
 
-                AppendMessage(Application.Current.Resources["Connected"].ToString(), (Color)ColorConverter.ConvertFromString("#FF19E62C"));
+                //AppendMessage(Application.Current.Resources["Connected"].ToString(), (Color)ColorConverter.ConvertFromString("#FF19E62C"));
 
                 roomId = uint.Parse(RoomIdBox.Text);
             }));
@@ -259,7 +259,7 @@ namespace BiliLiveHelper
                 InfoGrid.Visibility = Visibility.Hidden;
                 TitleBox.Text = Application.Current.Resources["BiliLiveHelper"].ToString();
 
-                AppendMessage(Application.Current.Resources["Disconnected"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
+                //AppendMessage(Application.Current.Resources["Disconnected"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
             }));
         }
 
