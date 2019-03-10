@@ -6,12 +6,17 @@ namespace BiliLiveHelper
 {
     class BiliLiveJsonParser
     {
+        public delegate void LiveStatusUpdateDel();
+        public static event LiveStatusUpdateDel LiveStatusUpdate;
+
         [Serializable]
         public class Item
         {
             public enum Cmds
             {
                 UNKNOW,
+                LIVE,
+                PREPARING,
                 DANMU_MSG,
                 SEND_GIFT,
                 SPECIAL_GIFT,
@@ -28,7 +33,8 @@ namespace BiliLiveHelper
                 COMBO_END,
                 ROOM_RANK,
                 TV_START,
-                NOTICE_MSG
+                NOTICE_MSG,
+                SYS_GIFT
             }
 
             public Cmds Cmd;
@@ -168,6 +174,8 @@ namespace BiliLiveHelper
                         return new RoomBlock(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), (uint)json.data["operator"]);
                     case "GUARD_BUY":
                         return new GuardBuy(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.username)), json.data.gift_name);
+                    case "LIVE":
+                    case "PREPARING":
                     case "SPECIAL_GIFT":
                     case "USER_TOAST_MSG":
                     case "GUARD_MSG":
@@ -178,6 +186,7 @@ namespace BiliLiveHelper
                     case "ROOM_RANK":
                     case "TV_START":
                     case "NOTICE_MSG":
+                    case "SYS_GIFT":
                         return new Item(Enum.Parse(typeof(Item.Cmds), json.cmd), jsonStr);
                     default:
                         return new Item(Item.Cmds.UNKNOW, jsonStr);

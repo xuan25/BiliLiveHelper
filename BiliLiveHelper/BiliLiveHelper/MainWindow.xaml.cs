@@ -384,6 +384,10 @@ namespace BiliLiveHelper
 
                 switch (item.Cmd)
                 {
+                    case BiliLiveJsonParser.Item.Cmds.LIVE:
+                    case BiliLiveJsonParser.Item.Cmds.PREPARING:
+                        biliLiveInfo.UpdateInfo(Timeout);
+                        break;
                     case BiliLiveJsonParser.Item.Cmds.DANMU_MSG:
                         AppendDanmaku((BiliLiveJsonParser.Danmaku)item);
                         break;

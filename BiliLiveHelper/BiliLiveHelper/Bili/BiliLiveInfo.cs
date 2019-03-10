@@ -77,6 +77,16 @@ namespace BiliLiveHelper
             }
         }
 
+        public void UpdateInfo(int timeout)
+        {
+            Info info = GetInfo(timeout);
+            if (info != null && info.GetHashCode() != CurrentInfo.GetHashCode())
+            {
+                CurrentInfo = info;
+                InfoUpdate?.Invoke(CurrentInfo);
+            }
+        }
+
         public bool StartInfoListener(int timeout, int interval)
         {
             if (InfoListenerThread != null)
@@ -90,12 +100,7 @@ namespace BiliLiveHelper
                 while (true)
                 {
                     Thread.Sleep(interval);
-                    Info info = GetInfo(timeout);
-                    if (info != null && info.GetHashCode() != CurrentInfo.GetHashCode())
-                    {
-                        CurrentInfo = info;
-                        InfoUpdate?.Invoke(CurrentInfo);
-                    }
+                    UpdateInfo(timeout);
                 }
             });
             InfoListenerThread.Start();
