@@ -34,7 +34,8 @@ namespace BiliLiveHelper
                 ROOM_RANK,
                 TV_START,
                 NOTICE_MSG,
-                SYS_GIFT
+                SYS_GIFT,
+                ROOM_REAL_TIME_MESSAGE_UPDATE
             }
 
             public Cmds Cmd;
@@ -187,6 +188,7 @@ namespace BiliLiveHelper
                     case "TV_START":
                     case "NOTICE_MSG":
                     case "SYS_GIFT":
+                    case "ROOM_REAL_TIME_MESSAGE_UPDATE":
                         return new Item(Enum.Parse(typeof(Item.Cmds), json.cmd), jsonStr);
                     default:
                         return new Item(Item.Cmds.UNKNOW, jsonStr);
