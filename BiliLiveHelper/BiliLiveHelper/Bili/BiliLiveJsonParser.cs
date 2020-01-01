@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Text.RegularExpressions;
-using Json;
+using JsonUtil;
 
 namespace BiliLiveHelper
 {
@@ -39,9 +39,9 @@ namespace BiliLiveHelper
             }
 
             public Cmds Cmd;
-            public string Json;
+            public Json.Value Json;
 
-            public Item(Cmds cmd, string json)
+            public Item(Cmds cmd, Json.Value json)
             {
                 Cmd = cmd;
                 Json = json;
@@ -68,7 +68,7 @@ namespace BiliLiveHelper
             public string Content;
             public uint Type;
 
-            public Danmaku(string json, User sender, string content, uint type) : base(Cmds.DANMU_MSG, json)
+            public Danmaku(Json.Value json, User sender, string content, uint type) : base(Cmds.DANMU_MSG, json)
             {
                 Sender = sender;
                 Content = content;
@@ -83,7 +83,7 @@ namespace BiliLiveHelper
             public string GiftName;
             public uint Number;
 
-            public GiftCombo(string json, User sender, string giftName, uint number) : base(Cmds.COMBO_END, json)
+            public GiftCombo(Json.Value json, User sender, string giftName, uint number) : base(Cmds.COMBO_END, json)
             {
                 Sender = sender;
                 GiftName = giftName;
@@ -98,7 +98,7 @@ namespace BiliLiveHelper
             public string GiftName;
             public uint Number;
 
-            public Gift(string json, User sender, string giftName, uint number) : base(Cmds.SEND_GIFT, json)
+            public Gift(Json.Value json, User sender, string giftName, uint number) : base(Cmds.SEND_GIFT, json)
             {
                 Sender = sender;
                 GiftName = giftName;
@@ -111,7 +111,7 @@ namespace BiliLiveHelper
         {
             public User User;
 
-            public Welcome(string json, User user) : base(Cmds.WELCOME, json)
+            public Welcome(Json.Value json, User user) : base(Cmds.WELCOME, json)
             {
                 User = user;
             }
@@ -122,7 +122,7 @@ namespace BiliLiveHelper
         {
             public User User;
 
-            public WelcomeGuard(string json, User user) : base(Cmds.WELCOME_GUARD, json)
+            public WelcomeGuard(Json.Value json, User user) : base(Cmds.WELCOME_GUARD, json)
             {
                 User = user;
             }
@@ -134,7 +134,7 @@ namespace BiliLiveHelper
             public User User;
             public uint Operator;
 
-            public RoomBlock(string json, User user, uint ope) : base(Cmds.ROOM_BLOCK_MSG, json)
+            public RoomBlock(Json.Value json, User user, uint ope) : base(Cmds.ROOM_BLOCK_MSG, json)
             {
                 User = user;
                 Operator = ope;
@@ -147,34 +147,33 @@ namespace BiliLiveHelper
             public User User;
             public string GiftName;
 
-            public GuardBuy(string json, User user, string giftName) : base(Cmds.GUARD_BUY, json)
+            public GuardBuy(Json.Value json, User user, string giftName) : base(Cmds.GUARD_BUY, json)
             {
                 User = user;
                 GiftName = giftName;
             }
         }
 
-        public static Item Parse(string jsonStr)
+        public static Item Parse(Json.Value json)
         {
             try
             {
-                dynamic json = JsonParser.Parse(jsonStr);
-                switch (json.cmd)
+                switch ((string)json["cmd"])
                 {
                     case "DANMU_MSG":
-                        return new Danmaku(jsonStr, new User((uint)json.info[2][0], Regex.Unescape(json.info[2][1])), Regex.Unescape(json.info[1]), (uint)json.info[0][9]);
+                        return new Danmaku(json, new User((uint)json["info"][2][0], Regex.Unescape(json["info"][2][1])), Regex.Unescape(json["info"][1]), (uint)json["info"][0][9]);
                     case "SEND_GIFT":
-                        return new Gift(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.giftName), (uint)json.data.num);
+                        return new Gift(json, new User((uint)json["data"]["uid"], Regex.Unescape(json["data"]["uname"])), Regex.Unescape(json["data"]["giftName"]), (uint)json["data"]["num"]);
                     case "COMBO_END":
-                        return new GiftCombo(jsonStr, new User(0, Regex.Unescape(json.data.uname)), Regex.Unescape(json.data.gift_name), (uint)json.data.combo_num);
+                        return new GiftCombo(json, new User(0, Regex.Unescape(json["data"]["uname"])), Regex.Unescape(json["data"]["gift_name"]), (uint)json["data"]["combo_num"]);
                     case "WELCOME":
-                        return new Welcome(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)));
+                        return new Welcome(json, new User((uint)json["data"]["uid"], Regex.Unescape(json["data"]["uname"])));
                     case "WELCOME_GUARD":
-                        return new WelcomeGuard(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.username)));
+                        return new WelcomeGuard(json, new User((uint)json["data"]["uid"], Regex.Unescape(json["data"]["username"])));
                     case "ROOM_BLOCK_MSG":
-                        return new RoomBlock(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.uname)), (uint)json.data["operator"]);
+                        return new RoomBlock(json, new User((uint)json["data"]["uid"], Regex.Unescape(json["data"]["uname"])), (uint)json["data"]["operator"]);
                     case "GUARD_BUY":
-                        return new GuardBuy(jsonStr, new User((uint)json.data.uid, Regex.Unescape(json.data.username)), json.data.gift_name);
+                        return new GuardBuy(json, new User((uint)json["data"]["uid"], Regex.Unescape(json["data"]["username"])), json["data"]["gift_name"]);
                     case "LIVE":
                     case "PREPARING":
                     case "SPECIAL_GIFT":
@@ -189,14 +188,15 @@ namespace BiliLiveHelper
                     case "NOTICE_MSG":
                     case "SYS_GIFT":
                     case "ROOM_REAL_TIME_MESSAGE_UPDATE":
-                        return new Item(Enum.Parse(typeof(Item.Cmds), json.cmd), jsonStr);
+                        return new Item((Item.Cmds)Enum.Parse(typeof(Item.Cmds), (string)json["cmd"]), json);
                     default:
-                        return new Item(Item.Cmds.UNKNOW, jsonStr);
+                        return new Item(Item.Cmds.UNKNOW, json);
 
                 }
             }
             catch (Exception)
             {
+                Console.WriteLine(1);
                 return null;
             }
             

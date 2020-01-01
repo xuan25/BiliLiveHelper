@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JsonUtil;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Net.NetworkInformation;
@@ -335,14 +336,14 @@ namespace BiliLiveHelper
 
         // Listener recieved
 
-        private void BiliLiveListener_JsonRecieved(string message)
+        private void BiliLiveListener_JsonRecieved(Json.Value json)
         {
-            Log += message + "\r\n";
+            Log += json.ToString() + "\r\n";
             if (debugWindow != null)
             {
-                debugWindow.AppendLog(message);
+                debugWindow.AppendLog(json.ToString());
             }
-            BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(message);
+            BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(json);
             AppendItem(item);
         }
 
@@ -410,7 +411,7 @@ namespace BiliLiveHelper
                         AppendGuardBuy((BiliLiveJsonParser.GuardBuy)item);
                         break;
                     case BiliLiveJsonParser.Item.Cmds.UNKNOW:
-                        AppendMessage(item.Json, (Color)ColorConverter.ConvertFromString("#FFC8C83C"));
+                        //AppendMessage(item.Json.ToString(), (Color)ColorConverter.ConvertFromString("#FFC8C83C"));
                         break;
                     default:
                         break;

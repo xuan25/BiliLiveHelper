@@ -1,4 +1,5 @@
-﻿using System;
+﻿using JsonUtil;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -15,276 +16,19 @@ namespace BiliLiveHelper
     {
         public delegate void GeneralDelegate();
         public delegate void MessageDelegate(string message);
+        public delegate void JsonDelegate(Json.Value json);
 
         public event GeneralDelegate Connected;
         public event GeneralDelegate Disconnected;
         public event MessageDelegate ConnectionFailed;
 
         public event MessageDelegate PopularityRecieved;
-        public event MessageDelegate JsonRecieved;
+        public event JsonDelegate JsonRecieved;
         public event GeneralDelegate ServerHeartbeatRecieved;
 
         private TcpClient tcpClient;
         private uint roomId;
         private int timeout;
-
-        // About get info
-
-        private uint GetRealRoomId(uint roomId)
-        {
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
-                if (timeout > 0)
-                {
-                    request.Timeout = timeout;
-                }
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
-                if (match.Success)
-                    return uint.Parse(match.Groups["RoomId"].Value);
-                return 0;
-            }
-            catch (WebException)
-            {
-                ConnectionFailed?.Invoke("未能找到直播间");
-                return 0;
-            }
-            
-        }
-
-        private Dictionary<string, string> GetRoomInfo(uint roomId)
-        {
-            roomId = GetRealRoomId(roomId);
-            if(roomId == 0)
-            {
-                return null;
-            }
-            try
-            {
-                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://live.bilibili.com/api/player?id=cid:" + roomId);
-                if (timeout > 0)
-                {
-                    request.Timeout = timeout;
-                }
-                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-                string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
-                MatchCollection matchCollection = Regex.Matches(ret, "\\<(?<Key>.+)\\>(?<Value>.*)\\</.+\\>");
-                Dictionary<string, string> roomInfo = new Dictionary<string, string>();
-                roomInfo.Add("room_id", roomId.ToString());
-                foreach (Match m in matchCollection)
-                {
-                    roomInfo.Add(m.Groups["Key"].Value, m.Groups["Value"].Value);
-                }
-                return roomInfo;
-            }
-            catch (WebException)
-            {
-                ConnectionFailed?.Invoke("直播间信息获取失败");
-                return null;
-            }
-            
-        }
-
-        // About Sending message
-        private byte[] ToBE(byte[] b)
-        {
-            if (BitConverter.IsLittleEndian)
-                Array.Reverse(b);
-            return b;
-        }
-
-        private enum MessageType { CONNECT = 7, HEARTBEAT = 2 };
-
-        private void SendMessage(NetworkStream stream, int messageType, string message)
-        {
-            byte[] messageArray = Encoding.UTF8.GetBytes(message);
-            int dataLength = messageArray.Length + 16;
-
-            MemoryStream buffer = new MemoryStream(dataLength);
-            // Data length (4)
-            buffer.Write(ToBE(BitConverter.GetBytes(dataLength)), 0, 4);
-            // Header length and Protocal version (4)
-            buffer.Write(new byte[] { 0x00, 0x10, 0x00, 0x01 }, 0, 4);
-            // Message type (4)
-            buffer.Write(ToBE(BitConverter.GetBytes(messageType)), 0, 4);
-            // Sequence (4)
-            buffer.Write(ToBE(BitConverter.GetBytes(1)), 0, 4);
-            // Message
-            buffer.Write(messageArray, 0, messageArray.Length);
-
-            stream.Write(buffer.GetBuffer(), 0, dataLength);
-            stream.Flush();
-        }
-
-        // About tcp connection
-        private TcpClient Connect(Dictionary<string, string> roomInfo)
-        {
-            TcpClient tcpClient = new TcpClient();
-            tcpClient.Connect(roomInfo["dm_server"], int.Parse(roomInfo["dm_port"]));
-            NetworkStream networkStream = tcpClient.GetStream();
-            string msg = string.Format("{{\"roomid\":{0},\"uid\":{1}}}", roomInfo["room_id"], (long)(1e14 + 2e14 * new Random().NextDouble()));
-            try
-            {
-                SendMessage(networkStream, (int)MessageType.CONNECT, msg);
-            }
-            catch (SocketException)
-            {
-                ConnectionFailed?.Invoke("连接请求发送失败");
-                Disconnect();
-            }
-            catch (InvalidOperationException)
-            {
-                ConnectionFailed?.Invoke("连接请求发送失败");
-                Disconnect();
-            }
-            catch (IOException)
-            {
-                ConnectionFailed?.Invoke("连接请求发送失败");
-                Disconnect();
-            }
-            return tcpClient;
-        }
-
-        // About Heartbeat Sender
-        private Thread heartbeatSenderThread;
-        private bool heartbeatSenderStarted;
-
-        private void StopHeartbeatSender()
-        {
-            heartbeatSenderStarted = false;
-            if (heartbeatSenderThread != null)
-                heartbeatSenderThread.Abort();
-        }
-
-        private void StartHeartbeatSender(TcpClient tcpClient)
-        {
-            StopHeartbeatSender();
-            heartbeatSenderThread = new Thread(delegate ()
-            {
-                heartbeatSenderStarted = true;
-                while (heartbeatSenderStarted)
-                {
-                    try
-                    {
-                        SendMessage(tcpClient.GetStream(), (int)MessageType.HEARTBEAT, "");
-                    }
-                    catch (SocketException)
-                    {
-                        ConnectionFailed?.Invoke("心跳包发送失败");
-                        Disconnect();
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        ConnectionFailed?.Invoke("心跳包发送失败");
-                        Disconnect();
-                    }
-                    catch (IOException)
-                    {
-                        ConnectionFailed?.Invoke("心跳包发送失败");
-                        Disconnect();
-                    }
-                    Thread.Sleep(30 * 1000);
-                }
-            });
-            heartbeatSenderThread.Start();
-        }
-
-
-        // About Event listener
-        private Thread eventListenerThread;
-        private bool eventListenerStarted;
-
-        private void StopEventListener()
-        {
-            eventListenerStarted = false;
-            if (eventListenerThread != null)
-                eventListenerThread.Abort();
-        }
-
-        private void StartEventListener(TcpClient tcpClient)
-        {
-            eventListenerThread = new Thread(delegate ()
-            {
-                eventListenerStarted = true;
-                byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
-                NetworkStream networkStream = tcpClient.GetStream();
-                while (eventListenerStarted)
-                {
-                    try
-                    {
-                        // Read data length (4)
-                        networkStream.Read(buffer, 0, 4);
-                        int datalength = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
-
-                        // Check data length
-                        if (datalength < 16)
-                        {
-                            // Handle data error
-                            networkStream.Flush();
-                            continue;
-                        }
-
-                        // Read header length and protocol version (4)
-                        networkStream.Read(buffer, 0, 4);
-
-                        // Read message type (4)
-                        networkStream.Read(buffer, 0, 4);
-                        int typeId = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(buffer, 0));
-
-                        // Read sequence (4)
-                        networkStream.Read(buffer, 0, 4);
-
-                        // Read message
-                        int messageLength = datalength - 16;
-                        if(messageLength > (double)1024 * 1024 / sizeof(byte))
-                        {
-                            // Handle data error
-                            networkStream.Flush();
-                            continue;
-                        }
-                        byte[] messageBuffer = new byte[messageLength];
-                        networkStream.Read(messageBuffer, 0, messageLength);
-
-                        // Parse
-                        switch (typeId)
-                        {
-                            case 3:
-                                {
-                                    uint popularity = BitConverter.ToUInt32(messageBuffer.Take(4).Reverse().ToArray(), 0);
-                                    PopularityRecieved?.Invoke(popularity.ToString());
-                                    break;
-                                }
-                            case 5:
-                                {
-                                    string json = Encoding.UTF8.GetString(messageBuffer, 0, messageLength);
-                                    JsonRecieved?.Invoke(json);
-                                    break;
-                                }
-                            case 8:
-                                {
-                                    ServerHeartbeatRecieved?.Invoke();
-                                    break;
-                                }
-                            default:
-                                break;
-                        }
-                    }
-                    catch (SocketException)
-                    {
-                        ConnectionFailed?.Invoke("数据读取失败");
-                        Disconnect();
-                    }
-                    catch (IOException)
-                    {
-                        ConnectionFailed?.Invoke("数据读取失败");
-                        Disconnect();
-                    }
-                }
-            });
-            eventListenerThread.Start();
-        }
 
         /// <summary>
         /// Constructor 
@@ -297,6 +41,8 @@ namespace BiliLiveHelper
             this.roomId = roomId;
             this.timeout = timeout;
         }
+
+        #region Public methods
 
         /// <summary>
         /// Connect
@@ -322,10 +68,10 @@ namespace BiliLiveHelper
                     ConnectionFailed?.Invoke("网络连接失败");
                     return;
                 }
-                Dictionary<string, string> roomInfo = GetRoomInfo(roomId);
-                if(roomInfo == null)
+                DanmakuServer danmakuServer = GetDanmakuServer(roomId);
+                if (danmakuServer == null)
                     return;
-                tcpClient = Connect(roomInfo);
+                tcpClient = Connect(danmakuServer);
                 StartEventListener(tcpClient);
                 StartHeartbeatSender(tcpClient);
                 Connected?.Invoke();
@@ -348,10 +94,239 @@ namespace BiliLiveHelper
 
                 StopEventListener();
                 StopHeartbeatSender();
-                if(tcpClient != null)
+                if (tcpClient != null)
                     tcpClient.Close();
                 Disconnected?.Invoke();
             }).Start();
         }
+
+        #endregion
+
+        #region Connect to a DanmakuServer
+
+        private class DanmakuServer
+        {
+            public long RoomId;
+            public string Server;
+            public int Port;
+            public int WsPort;
+            public int WssPort;
+            public string Token;
+        }
+
+        private TcpClient Connect(DanmakuServer danmakuServer)
+        {
+            TcpClient tcpClient = new TcpClient();
+            tcpClient.Connect(danmakuServer.Server, danmakuServer.Port);
+            NetworkStream networkStream = tcpClient.GetStream();
+            //string msg = string.Format("{{\"roomid\":{0},\"uid\":{1}}}", danmakuServer,roomId, (long)(1e14 + 2e14 * new Random().NextDouble()));
+
+            Json.Value initMsg = new Json.Value.Object();
+            initMsg["uid"] = 0;
+            initMsg["roomid"] = danmakuServer.RoomId;
+            initMsg["protover"] = 2;
+            initMsg["platform"] = "web";
+            initMsg["clientver"] = "1.9.3";
+            initMsg["type"] = 2;
+            initMsg["key"] = danmakuServer.Token;
+
+            try
+            {
+                BiliPackWriter.SendMessage(networkStream, (int)BiliPackWriter.MessageType.CONNECT, initMsg.ToString());
+            }
+            catch (SocketException)
+            {
+                ConnectionFailed?.Invoke("连接请求发送失败");
+                Disconnect();
+            }
+            catch (InvalidOperationException)
+            {
+                ConnectionFailed?.Invoke("连接请求发送失败");
+                Disconnect();
+            }
+            catch (IOException)
+            {
+                ConnectionFailed?.Invoke("连接请求发送失败");
+                Disconnect();
+            }
+            return tcpClient;
+        }
+
+        #endregion
+
+        #region Room info
+
+        private long GetRealRoomId(long roomId)
+        {
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Room/room_init?id=" + roomId);
+                if (timeout > 0)
+                {
+                    request.Timeout = timeout;
+                }
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                string ret = new StreamReader(response.GetResponseStream()).ReadToEnd();
+                Match match = Regex.Match(ret, "\"room_id\":(?<RoomId>[0-9]+)");
+                if (match.Success)
+                    return uint.Parse(match.Groups["RoomId"].Value);
+                return 0;
+            }
+            catch (WebException)
+            {
+                ConnectionFailed?.Invoke("未能找到直播间");
+                return -1;
+            }
+
+        }
+
+        private DanmakuServer GetDanmakuServer(long roomId)
+        {
+            roomId = GetRealRoomId(roomId);
+            if (roomId < 0)
+            {
+                return null;
+            }
+            try
+            {
+                HttpWebRequest request = (HttpWebRequest)WebRequest.Create("https://api.live.bilibili.com/room/v1/Danmu/getConf?room_id=" + roomId);
+                HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+                Json.Value json = Json.Parser.Parse(response.GetResponseStream());
+                if (json["code"] != 0)
+                {
+                    Console.Error.WriteLine("Error occurs when resolving dm servers");
+                    Console.Error.WriteLine(json.ToString());
+                    return null;
+                }
+
+                DanmakuServer danmakuServer = new DanmakuServer();
+                danmakuServer.RoomId = roomId;
+                danmakuServer.Server = json["data"]["host_server_list"][0]["host"];
+                danmakuServer.Port = json["data"]["host_server_list"][0]["port"];
+                danmakuServer.WsPort = json["data"]["host_server_list"][0]["ws_port"];
+                danmakuServer.WssPort = json["data"]["host_server_list"][0]["wss_port"];
+                danmakuServer.Token = json["data"]["token"];
+
+                return danmakuServer;
+
+            }
+            catch (WebException)
+            {
+                ConnectionFailed?.Invoke("直播间信息获取失败");
+                return null;
+            }
+
+        }
+
+        #endregion
+
+        #region Heartbeat Sender
+
+        private Thread heartbeatSenderThread;
+        private bool heartbeatSenderStarted;
+
+        private void StopHeartbeatSender()
+        {
+            heartbeatSenderStarted = false;
+            if (heartbeatSenderThread != null)
+                heartbeatSenderThread.Abort();
+        }
+
+        private void StartHeartbeatSender(TcpClient tcpClient)
+        {
+            StopHeartbeatSender();
+            heartbeatSenderThread = new Thread(delegate ()
+            {
+                heartbeatSenderStarted = true;
+                while (heartbeatSenderStarted)
+                {
+                    try
+                    {
+                        BiliPackWriter.SendMessage(tcpClient.GetStream(), (int)BiliPackWriter.MessageType.HEARTBEAT, "");
+                    }
+                    catch (SocketException)
+                    {
+                        ConnectionFailed?.Invoke("心跳包发送失败");
+                        Disconnect();
+                    }
+                    catch (InvalidOperationException)
+                    {
+                        ConnectionFailed?.Invoke("心跳包发送失败");
+                        Disconnect();
+                    }
+                    catch (IOException)
+                    {
+                        ConnectionFailed?.Invoke("心跳包发送失败");
+                        Disconnect();
+                    }
+                    Thread.Sleep(30 * 1000);
+                }
+            });
+            heartbeatSenderThread.Start();
+        }
+
+        #endregion
+
+        #region Event listener
+
+        private Thread eventListenerThread;
+        private bool eventListenerStarted;
+
+        private void StopEventListener()
+        {
+            eventListenerStarted = false;
+            if (eventListenerThread != null)
+                eventListenerThread.Abort();
+        }
+
+        private void StartEventListener(TcpClient tcpClient)
+        {
+            eventListenerThread = new Thread(delegate ()
+            {
+                eventListenerStarted = true;
+                byte[] buffer = new byte[tcpClient.ReceiveBufferSize];
+                NetworkStream networkStream = tcpClient.GetStream();
+                while (eventListenerStarted)
+                {
+                    try
+                    {
+                        while (!networkStream.DataAvailable)
+                        {
+                            Thread.Sleep(10);
+                        }
+                        BiliPackReader.IPack[] packs = BiliPackReader.ReadPack(networkStream);
+
+                        foreach(BiliPackReader.IPack pack in packs)
+                        {
+                            switch (pack.PackType)
+                            {
+                                case BiliPackReader.PackTypes.Popularity:
+                                    PopularityRecieved?.Invoke(((BiliPackReader.PopularityPack)pack).Popularity.ToString());
+                                    break;
+                                case BiliPackReader.PackTypes.Command:
+                                    JsonRecieved?.Invoke(((BiliPackReader.CommandPack)pack).Value);
+                                    break;
+                                case BiliPackReader.PackTypes.Heartbeat:
+                                    ServerHeartbeatRecieved?.Invoke();
+                                    break;
+                            }
+                        }
+                    }
+                    catch (SocketException)
+                    {
+                        ConnectionFailed?.Invoke("数据读取失败");
+                        Disconnect();
+                    }
+                    catch (IOException)
+                    {
+                        ConnectionFailed?.Invoke("数据读取失败");
+                        Disconnect();
+                    }
+                }
+            });
+            eventListenerThread.Start();
+        }
+
+        #endregion
     }
 }
