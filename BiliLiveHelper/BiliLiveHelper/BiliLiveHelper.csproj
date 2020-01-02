@@ -57,9 +57,10 @@
     </ApplicationDefinition>
     <Compile Include="Bili\BiliPackReader.cs" />
     <Compile Include="Bili\BiliPackWriter.cs" />
-    <Compile Include="Framework\HitTest.cs" />
-    <Compile Include="Framework\Screen.cs" />
-    <Compile Include="Framework\WindowLong.cs" />
+    <Compile Include="Config\ConfigManager.cs" />
+    <Compile Include="Native\HitTest.cs" />
+    <Compile Include="Native\Screen.cs" />
+    <Compile Include="Native\WindowLong.cs" />
     <Page Include="DebugWindow.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
@@ -89,7 +90,7 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Performance\PerformanceMonitor.cs" />
+    <Compile Include="Monitor\PerformanceMonitor.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

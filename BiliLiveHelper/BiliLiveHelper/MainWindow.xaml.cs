@@ -16,6 +16,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
+using BiliLiveHelper.Config;
 
 namespace BiliLiveHelper
 {
@@ -27,72 +28,20 @@ namespace BiliLiveHelper
         //Attributes
         private BiliLiveListener biliLiveListener;
         private BiliLiveInfo biliLiveInfo;
-        private bool IsConnected;
-        private List<BiliLiveJsonParser.Item> RecievedItems;
         private PerformanceMonitor proformanceMonitor;
-        
-        private uint ListCapacity = 1000;
-        private uint HistoryCapacity = 1000;
-        private int Timeout = 10000;
-        private int RetryInterval = 3000;
-        private int IntegrationTime = 10000;
 
         public string Log;
-
-        [Serializable]
-        private class Status
-        {
-            public string RoomId;
-            public bool IsConnected;
-            public BiliLiveJsonParser.Item[] Items;
-
-            public Status(string roomId, bool isConnected, BiliLiveJsonParser.Item[] items)
-            {
-                RoomId = roomId;
-                IsConnected = isConnected;
-                Items = items;
-            }
-        }
-
-        [Serializable]
-        private class Config
-        {
-            public double Left;
-            public double Top;
-            public double Width;
-            public double Height;
-
-            public uint ListCapacity;
-            public uint HistoryCapacity;
-            public int Timeout;
-            public int RetryInterval;
-            public int IntegrationTime;
-
-            public Config(double left, double top, double width, double height, uint listCapacity, uint historyCapacity, int timeout, int retryInterval, int integrationTime)
-            {
-                Left = left;
-                Top = top;
-                Width = width;
-                Height = height;
-
-                ListCapacity = listCapacity;
-                HistoryCapacity = historyCapacity;
-                Timeout = timeout;
-                RetryInterval = retryInterval;
-                IntegrationTime = integrationTime;
-            }
-        }
 
         public MainWindow()
         {
             InitializeComponent();
-            IsConnected = false;
-            RecievedItems = new List<BiliLiveJsonParser.Item>();
+
             Log = string.Empty;
             rhythmStormCount = 0;
             IsLatestSurvival = false;
 
-            LoadConfig();
+            ConfigManager.LoadConfig();
+            ApplyConfig(ConfigManager.CurrentConfig);
         }
 
         // About startup
@@ -114,7 +63,8 @@ namespace BiliLiveHelper
             {
                 new Thread(delegate ()
                 {
-                    LoadStatus();
+                    ConfigManager.LoadStatus();
+                    ApplyStatue(ConfigManager.CurrentStatus);
 
                     Dispatcher.Invoke(new Action(() =>
                     {
@@ -182,12 +132,13 @@ namespace BiliLiveHelper
 
         private void ConnectBtn_Click(object sender, RoutedEventArgs e)
         {
-            if (IsConnected)
+            if (ConfigManager.CurrentStatus.IsConnected)
                 Disconnect();
             else
                 Connect();
-            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
-            SaveStatus(status);
+
+            ConfigManager.CurrentStatus.RoomId = RoomIdBox.Text;
+            ConfigManager.SaveStatus();
         }
 
         // About Connection
@@ -203,7 +154,7 @@ namespace BiliLiveHelper
             ConnectBtn.Content = Application.Current.Resources["Connecting"].ToString();
             RoomIdBox.IsEnabled = false;
 
-            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
+            biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), ConfigManager.CurrentConfig.Timeout);
             biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
             biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
             biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -224,7 +175,7 @@ namespace BiliLiveHelper
 
         private void BiliLiveListener_Connected()
         {
-            IsConnected = true;
+            ConfigManager.CurrentStatus.IsConnected = true;
             uint roomId = 0;
             Dispatcher.Invoke(new Action(() =>
             {
@@ -243,15 +194,15 @@ namespace BiliLiveHelper
             biliLiveInfo = new BiliLiveInfo(roomId);
             BiliLiveInfo.Info info = null;
             while (info == null)
-                info = biliLiveInfo.GetInfo(Timeout);
+                info = biliLiveInfo.GetInfo(ConfigManager.CurrentConfig.Timeout);
             BiliLiveInfo_InfoUpdate(info);
             biliLiveInfo.InfoUpdate += BiliLiveInfo_InfoUpdate;
-            biliLiveInfo.StartInfoListener(Timeout, 30*1000);
+            biliLiveInfo.StartInfoListener(ConfigManager.CurrentConfig.Timeout, 30 * 1000);
         }
 
         private void BiliLiveListener_Disconnected()
         {
-            IsConnected = false;
+            ConfigManager.CurrentStatus.IsConnected = false;
             Dispatcher.Invoke(new Action(() =>
             {
                 ConnectBtn.IsEnabled = true;
@@ -270,13 +221,13 @@ namespace BiliLiveHelper
         private void BiliLiveListener_ConnectionFailed(string message)
         {
             AppendMessage(message, (Color)ColorConverter.ConvertFromString("#FFE61919"));
-            if (IsConnected)
+            if (ConfigManager.CurrentStatus.IsConnected)
             {
                 PingReply pingReply = null;
                 try
                 {
-                    if (Timeout > 0)
-                        pingReply = new Ping().Send("live.bilibili.com", Timeout);
+                    if (ConfigManager.CurrentConfig.Timeout > 0)
+                        pingReply = new Ping().Send("live.bilibili.com", ConfigManager.CurrentConfig.Timeout);
                     else
                         pingReply = new Ping().Send("live.bilibili.com");
                 }
@@ -286,12 +237,12 @@ namespace BiliLiveHelper
                 }
                 if(pingReply != null && pingReply.Status == IPStatus.Success)
                 {
-                    Thread.Sleep(RetryInterval);
+                    Thread.Sleep(ConfigManager.CurrentConfig.RetryInterval);
                     Dispatcher.Invoke(new Action(() =>
                     {
                         AppendMessage(Application.Current.Resources["Retrying"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
                         biliLiveListener.Disconnect();
-                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), Timeout);
+                        biliLiveListener = new BiliLiveListener(uint.Parse(RoomIdBox.Text), ConfigManager.CurrentConfig.Timeout);
                         biliLiveListener.PopularityRecieved += BiliLiveListener_PopularityRecieved;
                         biliLiveListener.JsonRecieved += BiliLiveListener_JsonRecieved;
                         biliLiveListener.Connected += BiliLiveListener_Connected;
@@ -302,7 +253,7 @@ namespace BiliLiveHelper
                 else
                 {
                     AppendMessage(Application.Current.Resources["ConnectionFailed"].ToString(), (Color)ColorConverter.ConvertFromString("#FFE61919"));
-                    Thread.Sleep(RetryInterval);
+                    Thread.Sleep(ConfigManager.CurrentConfig.RetryInterval);
                     BiliLiveListener_ConnectionFailed(Application.Current.Resources["CheckingNetwork"].ToString());
                 }
             }
@@ -348,6 +299,7 @@ namespace BiliLiveHelper
             }
             BiliLiveJsonParser.Item item = BiliLiveJsonParser.Parse(json);
             AppendItem(item);
+            AppendHistory(item);
         }
 
         private void BiliLiveListener_PopularityRecieved(string message)
@@ -360,6 +312,16 @@ namespace BiliLiveHelper
 
         // Append list item
 
+        private void AppendHistory(BiliLiveJsonParser.Item item)
+        {
+            if (!(item.GetType() == typeof(BiliLiveJsonParser.Danmaku) && ((BiliLiveJsonParser.Danmaku)item).Type != 0))
+            {
+                ConfigManager.CurrentStatus.RecievedItems.Add(item);
+                while (ConfigManager.CurrentStatus.RecievedItems.Count > ConfigManager.CurrentConfig.HistoryCapacity)
+                    ConfigManager.CurrentStatus.RecievedItems.RemoveAt(0);
+            }
+        }
+
         private void AppendItem(BiliLiveJsonParser.Item item)
         {
             if (item != null)
@@ -367,19 +329,15 @@ namespace BiliLiveHelper
                 // If not Rhythm storm
                 if (!(item.GetType() == typeof(BiliLiveJsonParser.Danmaku) && ((BiliLiveJsonParser.Danmaku)item).Type != 0))
                 {
-                    RecievedItems.Add(item);
-                    while (RecievedItems.Count > HistoryCapacity)
-                        RecievedItems.RemoveAt(0);
-
                     Dispatcher.Invoke(new Action(() =>
                     {
                         if (item.GetType() == typeof(BiliLiveJsonParser.Danmaku) || item.GetType() == typeof(BiliLiveJsonParser.Welcome) || item.GetType() == typeof(BiliLiveJsonParser.WelcomeGuard) || item.GetType() == typeof(BiliLiveJsonParser.RoomBlock))
-                            while (DanmakuBox.Items.Count >= ListCapacity)
+                            while (DanmakuBox.Items.Count >= ConfigManager.CurrentConfig.ListCapacity)
                             {
                                 RemoveFirstItem(DanmakuBox);
                             }
                         else
-                            while (GiftBox.Items.Count >= ListCapacity)
+                            while (GiftBox.Items.Count >= ConfigManager.CurrentConfig.ListCapacity)
                             {
                                 RemoveFirstItem(GiftBox);
                             }
@@ -390,7 +348,7 @@ namespace BiliLiveHelper
                 {
                     case BiliLiveJsonParser.Item.Cmds.LIVE:
                     case BiliLiveJsonParser.Item.Cmds.PREPARING:
-                        biliLiveInfo.UpdateInfo(Timeout);
+                        biliLiveInfo.UpdateInfo(ConfigManager.CurrentConfig.Timeout);
                         break;
                     case BiliLiveJsonParser.Item.Cmds.DANMU_MSG:
                         AppendDanmaku((BiliLiveJsonParser.Danmaku)item);
@@ -494,7 +452,7 @@ namespace BiliLiveHelper
                 {
                     while (true)
                     {
-                        if (DateTime.Now > lastRhythmTime.AddSeconds(IntegrationTime/1000))
+                        if (DateTime.Now > lastRhythmTime.AddSeconds(ConfigManager.CurrentConfig.IntegrationTime /1000))
                         {
                             rhythmStormCount = 0;
                             rhythmStormThread = null;
@@ -567,7 +525,7 @@ namespace BiliLiveHelper
                 {
                     while (true)
                     {
-                        if (DateTime.Now > latestGiftTime.AddSeconds(IntegrationTime / 1000))
+                        if (DateTime.Now > latestGiftTime.AddSeconds(ConfigManager.CurrentConfig.IntegrationTime / 1000))
                         {
                             IsLatestSurvival = false;
                             latestGiftThread = null;
@@ -861,11 +819,11 @@ namespace BiliLiveHelper
             }
             else
             {
-                ListCapacitySettingBox.Text = ListCapacity.ToString();
-                HistoryCapacitySettingBox.Text = HistoryCapacity.ToString();
-                TimeoutSettingBox.Text = (Timeout / 1000).ToString();
-                RetryIntervalSettingBox.Text = (RetryInterval / 1000).ToString();
-                IntegrationTimeSettingBox.Text = (IntegrationTime / 1000).ToString();
+                ListCapacitySettingBox.Text = ConfigManager.CurrentConfig.ListCapacity.ToString();
+                HistoryCapacitySettingBox.Text = ConfigManager.CurrentConfig.HistoryCapacity.ToString();
+                TimeoutSettingBox.Text = (ConfigManager.CurrentConfig.Timeout / 1000).ToString();
+                RetryIntervalSettingBox.Text = (ConfigManager.CurrentConfig.RetryInterval / 1000).ToString();
+                IntegrationTimeSettingBox.Text = (ConfigManager.CurrentConfig.IntegrationTime / 1000).ToString();
                 ShowSetting();
             }
         }
@@ -884,7 +842,7 @@ namespace BiliLiveHelper
         {
             DanmakuBox.Items.Clear();
             GiftBox.Items.Clear();
-            RecievedItems.Clear();
+            ConfigManager.CurrentStatus.RecievedItems.Clear();
         }
 
         private void ConfirmSettingBtn_Click(object sender, RoutedEventArgs e)
@@ -894,21 +852,20 @@ namespace BiliLiveHelper
 
         private void ConfirmSetting()
         {
-            ListCapacity = uint.Parse(ListCapacitySettingBox.Text);
-            HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
-            Timeout = int.Parse(TimeoutSettingBox.Text) * 1000;
-            RetryInterval = int.Parse(RetryIntervalSettingBox.Text) * 1000;
-            IntegrationTime = int.Parse(IntegrationTimeSettingBox.Text) * 1000;
+            ConfigManager.CurrentConfig.ListCapacity = uint.Parse(ListCapacitySettingBox.Text);
+            ConfigManager.CurrentConfig.HistoryCapacity = uint.Parse(HistoryCapacitySettingBox.Text);
+            ConfigManager.CurrentConfig.Timeout = int.Parse(TimeoutSettingBox.Text) * 1000;
+            ConfigManager.CurrentConfig.RetryInterval = int.Parse(RetryIntervalSettingBox.Text) * 1000;
+            ConfigManager.CurrentConfig.IntegrationTime = int.Parse(IntegrationTimeSettingBox.Text) * 1000;
             HideSetting();
-            while (RecievedItems.Count > HistoryCapacity)
-                RecievedItems.RemoveAt(0);
-            while (DanmakuBox.Items.Count > ListCapacity)
+            while (ConfigManager.CurrentStatus.RecievedItems.Count > ConfigManager.CurrentConfig.HistoryCapacity)
+                ConfigManager.CurrentStatus.RecievedItems.RemoveAt(0);
+            while (DanmakuBox.Items.Count > ConfigManager.CurrentConfig.ListCapacity)
                 DanmakuBox.Items.RemoveAt(0);
-            while (GiftBox.Items.Count > ListCapacity)
+            while (GiftBox.Items.Count > ConfigManager.CurrentConfig.ListCapacity)
                 GiftBox.Items.RemoveAt(0);
 
-            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval, this.IntegrationTime);
-            SaveConfig(config);
+            ConfigManager.SaveConfig();
         }
 
         private void CancelSettingBtn_Click(object sender, RoutedEventArgs e)
@@ -1013,18 +970,28 @@ namespace BiliLiveHelper
 
         private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            Config config = new Config(this.Left, this.Top, this.Width, this.Height, this.ListCapacity, this.HistoryCapacity, this.Timeout, this.RetryInterval, this.IntegrationTime);
-            Status status = new Status(RoomIdBox.Text, IsConnected, RecievedItems.ToArray());
-            if (IsConnected)
-                Disconnect();
+            ConfigManager.CurrentConfig.HasPosition = true;
+            ConfigManager.CurrentConfig.Left = this.Left;
+            ConfigManager.CurrentConfig.Top = this.Top;
+            ConfigManager.CurrentConfig.Width = this.Width;
+            ConfigManager.CurrentConfig.Height = this.Height;
+                
             ((Storyboard)Resources["HideWindow"]).Completed += delegate
             {
                 new Thread(delegate ()
                 {
                     Thread.Sleep(0);
                     proformanceMonitor.StopMonitoring();
-                    SaveConfig(config);
-                    SaveStatus(status);
+                    ConfigManager.SaveConfig();
+                    ConfigManager.SaveStatus();
+                    if (ConfigManager.CurrentStatus.IsConnected)
+                    {
+                        Dispatcher.Invoke(() =>
+                        {
+                            Disconnect();
+                        });
+                    }
+                    
                     Environment.Exit(0);
                 }).Start();
             };
@@ -1040,108 +1007,35 @@ namespace BiliLiveHelper
 
         // Save & Load
 
-        private void SaveConfig(Config config)
+        
+
+        private void ApplyConfig(ConfigManager.Config config)
         {
-            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
-            if (!Directory.Exists(fileDirectory))
-                Directory.CreateDirectory(fileDirectory);
-            string fileName = "Config.dat";
-            Stream stream = new FileStream(fileDirectory + fileName, FileMode.Create, FileAccess.ReadWrite);
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(stream, config);
-            stream.Close();
+            if (config.HasPosition)
+            {
+                this.Top = config.Top;
+                this.Left = config.Left;
+                this.Height = config.Height;
+                this.Width = config.Width;
+            }
+
+            //this.ListCapacity = config.ListCapacity;
+            //this.HistoryCapacity = config.HistoryCapacity;
+            //this.Timeout = config.Timeout;
+            //this.RetryInterval = config.RetryInterval;
+            //this.IntegrationTime = config.IntegrationTime;
         }
 
-        private bool LoadConfig()
-        {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Config.dat";
-            if (!File.Exists(path))
-            {
-                return false;
-            }
-            try
-            {
-                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
-                Config config = (Config)binaryFormatter.Deserialize(stream);
-                stream.Close();
-                ApplyConfig(config);
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
-        }
+        
 
-        private void ApplyConfig(Config config)
-        {
-            this.Top = config.Top;
-            this.Left = config.Left;
-            this.Height = config.Height;
-            this.Width = config.Width;
-
-            this.ListCapacity = config.ListCapacity;
-            this.HistoryCapacity = config.HistoryCapacity;
-            this.Timeout = config.Timeout;
-            this.RetryInterval = config.RetryInterval;
-            this.IntegrationTime = config.IntegrationTime;
-        }
-
-        private void SaveStatus(Status status)
-        {
-            string fileDirectory = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\";
-            if (!Directory.Exists(fileDirectory))
-                Directory.CreateDirectory(fileDirectory);
-            string fileName = "Status.dat";
-            Stream stream = new FileStream(fileDirectory + fileName, FileMode.Create, FileAccess.ReadWrite);
-            BinaryFormatter binaryFormatter = new BinaryFormatter();
-            binaryFormatter.Serialize(stream, status);
-            stream.Close();
-        }
-
-        private bool LoadStatus()
-        {
-            string path = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments) + "\\BiliLiveHelper\\Status.dat";
-            if (!File.Exists(path))
-            {
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
-                    ConnectBtn.IsEnabled = true;
-                    RoomIdBox.IsEnabled = true;
-                }));
-                return false;
-            }
-            try
-            {
-                Stream stream = new FileStream(path, FileMode.Open, FileAccess.Read);
-                BinaryFormatter binaryFormatter = new BinaryFormatter();
-                Status status = (Status)binaryFormatter.Deserialize(stream);
-                stream.Close();
-                ApplyStatue(status);
-                return true;
-            }
-            catch (Exception)
-            {
-                Dispatcher.Invoke(new Action(() =>
-                {
-                    ConnectBtn.Content = Application.Current.Resources["Connect"].ToString();
-                    ConnectBtn.IsEnabled = true;
-                    RoomIdBox.IsEnabled = true;
-                }));
-                return false;
-            }
-        }
-
-        private void ApplyStatue(Status status)
+        private void ApplyStatue(ConfigManager.Status status)
         {
             //IsConnected = status.IsConnected;
             Dispatcher.Invoke(new Action(() =>
             {
                 RoomIdBox.Text = status.RoomId;
             }));
-            foreach (BiliLiveJsonParser.Item i in status.Items)
+            foreach (BiliLiveJsonParser.Item i in status.RecievedItems)
             {
                 Dispatcher.Invoke(new Action(() =>
                 {
