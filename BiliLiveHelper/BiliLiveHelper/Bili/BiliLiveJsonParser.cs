@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using JsonUtil;
 
-namespace BiliLiveHelper
+namespace BiliLiveHelper.Bili
 {
     class BiliLiveJsonParser
     {

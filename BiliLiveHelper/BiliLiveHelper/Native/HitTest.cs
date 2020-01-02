@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace BiliLiveHelper
+namespace Native
 {
     class HitTest
     {

@@ -1,16 +1,13 @@
 ﻿using JsonUtil;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.NetworkInformation;
 using System.Net.Sockets;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 
-namespace BiliLiveHelper
+namespace BiliLiveHelper.Bili
 {
     class BiliLiveListener
     {
