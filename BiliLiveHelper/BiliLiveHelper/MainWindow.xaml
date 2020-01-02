@@ -83,7 +83,6 @@
             <Setter Property="CaretBrush" Value="#FFFFFFFF"/>
             <Setter Property="SelectionBrush" Value="#FF28AAFF"/>
         </Style>
-        
         <Style x:Key="ButtonStyle" TargetType="Button">
             <Setter Property="Background" Value="#882B2B2B"/>
             <Setter Property="Foreground" Value="White"/>
@@ -118,7 +117,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="LineRepeatButtonStyle" TargetType="{x:Type RepeatButton}">
             <Setter Property="Focusable" Value="False"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -143,7 +141,6 @@
                 </Trigger>
             </Style.Triggers>
         </Style>
-
         <Style x:Key="PageRepeatButtonStyle" TargetType="{x:Type RepeatButton}">
             <Setter Property="Background" Value="#00FFFFFF"/>
             <Setter Property="Focusable" Value="False"/>
@@ -156,7 +153,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="ScrollBarStyle" TargetType="{x:Type ScrollBar}">
             <Setter Property="Stylus.IsFlicksEnabled" Value="false"/>
             <Setter Property="Foreground" Value="#00FFFFFF"/>
@@ -210,7 +206,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="ScrollViewerStyle" TargetType="{x:Type ScrollViewer}" BasedOn="{x:Null}">
             <Setter Property="Template">
                 <Setter.Value>
@@ -232,7 +227,6 @@
                 </Setter.Value>
             </Setter>
         </Style>
-
         <Style x:Key="ListBoxStyle" TargetType="{x:Type ListBox}">
             <Setter Property="SnapsToDevicePixels" Value="true"/>
             <Setter Property="OverridesDefaultStyle" Value="true"/>
@@ -272,115 +266,163 @@
     <Window.Effect>
         <DropShadowEffect ShadowDepth="1" BlurRadius="16" Direction="270" Opacity="0.5" Color="#FF211613"/>
     </Window.Effect>
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="30"/>
-            <RowDefinition Height="40"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="20"/>
-        </Grid.RowDefinitions>
-        <Border BorderBrush="#FF47494F" BorderThickness="1" Grid.Row="0" Grid.RowSpan="4"/>
-        <Grid x:Name="Header" Grid.Row="0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="Header_PreviewMouseLeftButtonUp" Background="#11ffffff">
-            <TextBlock x:Name="TitleBox" HorizontalAlignment="Stretch" Margin="14,0,50,0" TextWrapping="NoWrap" TextTrimming="WordEllipsis" FontSize="14" Text="{StaticResource BiliLiveHelper}" VerticalAlignment="Center"/>
-            <!--Close Button-->
-            <Grid x:Name="CloseBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
-                <Grid.Triggers>
-                    <EventTrigger RoutedEvent="Button.MouseEnter">
-                        <BeginStoryboard Storyboard="{StaticResource CloseBtnMouseEnter}"/>
-                    </EventTrigger>
-                    <EventTrigger RoutedEvent="Button.MouseLeave">
-                        <BeginStoryboard Storyboard="{StaticResource CloseBtnMouseLeave}"/>
-                    </EventTrigger>
-                </Grid.Triggers>
-                <Path x:Name="CloseBtnIcon" Fill="#999999">
-                    <Path.Data>
-                        <GeometryGroup FillRule="Nonzero">
-                            <PathGeometry>
-                                <PathFigure IsClosed="True" StartPoint="2,0">
-                                    <ArcSegment Point="0,2" Size="1,1"/>
-                                    <LineSegment Point="10,12"/>
-                                    <ArcSegment Point="12,10" Size="1,1"/>
-                                </PathFigure>
-                            </PathGeometry>
-                            <PathGeometry>
-                                <PathFigure IsClosed="True" StartPoint="12,2">
-                                    <ArcSegment Point="10,0" Size="1,1"/>
-                                    <LineSegment Point="0,10"/>
-                                    <ArcSegment Point="2,12" Size="1,1"/>
-                                </PathFigure>
-                            </PathGeometry>
-                        </GeometryGroup>
-                    </Path.Data>
-                </Path>
-            </Grid>
-            <!--Setting Button-->
-            <Grid x:Name="SettingBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" ToolTip="{StaticResource Settings}">
-                <Grid.Triggers>
-                    <EventTrigger RoutedEvent="Button.MouseEnter">
-                        <BeginStoryboard Storyboard="{StaticResource SettingBtnMouseEnter}"/>
-                    </EventTrigger>
-                    <EventTrigger RoutedEvent="Button.MouseLeave">
-                        <BeginStoryboard Storyboard="{StaticResource SettingBtnMouseLeave}"/>
-                    </EventTrigger>
-                </Grid.Triggers>
-                <Path x:Name="SettingBtnIcon" Fill="#999999">
-                    <Path.Data>
-                        <GeometryGroup FillRule="EvenOdd">
-                            <PathGeometry>
-                                <PathFigure IsClosed="True" StartPoint="7,0">
-                                    <LineSegment Point="14,4"/>
-                                    <LineSegment Point="14,12"/>
-                                    <LineSegment Point="7,16"/>
-                                    <LineSegment Point="0,12"/>
-                                    <LineSegment Point="0,4"/>
-                                </PathFigure>
-                            </PathGeometry>
-                            <EllipseGeometry Center="7,8" RadiusX="4" RadiusY="4"/>
-                        </GeometryGroup>
-                    </Path.Data>
-                </Path>
-            </Grid>
-        </Grid>
-        <Grid Grid.Row="1" Background="{Binding ElementName=Header, Path=Background}">
-            <Grid Margin="10,4">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="80"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="{StaticResource RoomIdHint}" VerticalAlignment="Center" IsHitTestVisible="False"/>
-                <TextBox x:Name="RoomIdBox" Style="{StaticResource TextBoxStyle}" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" TextChanged="RoomIdBox_TextChanged"/>
-                <Grid x:Name="InfoGrid" Grid.Column="0" Background="Transparent" Visibility="Hidden" Cursor="Hand" MouseLeftButtonDown="InfoGrid_MouseLeftButtonDown">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="*"/>
-                        <RowDefinition Height="*"/>
-                    </Grid.RowDefinitions>
-                    <TextBlock Grid.Row="0" x:Name="AreaBox" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="正在获取分区..." VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" x:Name="PopularityBox" HorizontalAlignment="Left" Margin="50,0,0,0" TextWrapping="Wrap" FontSize="14" Text="0" VerticalAlignment="Center"/>
-                </Grid>
-                <Button Grid.Column="1" x:Name="ConnectBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource Connect}" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ConnectBtn_Click"/>
-            </Grid>
-        </Grid>
+    <Border BorderBrush="#FF47494F" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="70"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="20"/>
+            </Grid.RowDefinitions>
 
-        <ScrollViewer x:Name="SettingGrid" Grid.Row="2" Style="{StaticResource ScrollViewerStyle}" Opacity="0" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
-            <Border BorderBrush="#FF47494F" BorderThickness="1">
-                <Grid>
+            <Grid x:Name="TopGrid" Background="#11ffffff">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="30"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <Grid x:Name="Header" Grid.Row="0" PreviewMouseLeftButtonDown="Header_PreviewMouseLeftButtonDown" PreviewMouseLeftButtonUp="Header_PreviewMouseLeftButtonUp">
+                    <TextBlock x:Name="TitleBox" HorizontalAlignment="Stretch" Margin="14,0,50,0" TextWrapping="NoWrap" TextTrimming="WordEllipsis" FontSize="14" Text="{StaticResource BiliLiveHelper}" VerticalAlignment="Center"/>
+                    <!--Close Button-->
+                    <Grid x:Name="CloseBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,10,0">
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="Button.MouseEnter">
+                                <BeginStoryboard Storyboard="{StaticResource CloseBtnMouseEnter}"/>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                <BeginStoryboard Storyboard="{StaticResource CloseBtnMouseLeave}"/>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <Path x:Name="CloseBtnIcon" Fill="#999999">
+                            <Path.Data>
+                                <GeometryGroup FillRule="Nonzero">
+                                    <PathGeometry>
+                                        <PathFigure IsClosed="True" StartPoint="2,0">
+                                            <ArcSegment Point="0,2" Size="1,1"/>
+                                            <LineSegment Point="10,12"/>
+                                            <ArcSegment Point="12,10" Size="1,1"/>
+                                        </PathFigure>
+                                    </PathGeometry>
+                                    <PathGeometry>
+                                        <PathFigure IsClosed="True" StartPoint="12,2">
+                                            <ArcSegment Point="10,0" Size="1,1"/>
+                                            <LineSegment Point="0,10"/>
+                                            <ArcSegment Point="2,12" Size="1,1"/>
+                                        </PathFigure>
+                                    </PathGeometry>
+                                </GeometryGroup>
+                            </Path.Data>
+                        </Path>
+                    </Grid>
+                    <!--Setting Button-->
+                    <Grid x:Name="SettingBtn" Background="Transparent" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="0,0,30,0" ToolTip="{StaticResource Settings}">
+                        <Grid.Triggers>
+                            <EventTrigger RoutedEvent="Button.MouseEnter">
+                                <BeginStoryboard Storyboard="{StaticResource SettingBtnMouseEnter}"/>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="Button.MouseLeave">
+                                <BeginStoryboard Storyboard="{StaticResource SettingBtnMouseLeave}"/>
+                            </EventTrigger>
+                        </Grid.Triggers>
+                        <Path x:Name="SettingBtnIcon" Fill="#999999">
+                            <Path.Data>
+                                <GeometryGroup FillRule="EvenOdd">
+                                    <PathGeometry>
+                                        <PathFigure IsClosed="True" StartPoint="7,0">
+                                            <LineSegment Point="14,4"/>
+                                            <LineSegment Point="14,12"/>
+                                            <LineSegment Point="7,16"/>
+                                            <LineSegment Point="0,12"/>
+                                            <LineSegment Point="0,4"/>
+                                        </PathFigure>
+                                    </PathGeometry>
+                                    <EllipseGeometry Center="7,8" RadiusX="4" RadiusY="4"/>
+                                </GeometryGroup>
+                            </Path.Data>
+                        </Path>
+                    </Grid>
+                </Grid>
+                <Grid x:Name="FunctionGrid" Grid.Row="1">
+                    <Grid Margin="10,4">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="80"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock x:Name="HintBox" Foreground="#55FFFFFF" HorizontalAlignment="Left" Margin="0,0,0,0" Padding="2" FontSize="14" Text="{StaticResource RoomIdHint}" VerticalAlignment="Center" IsHitTestVisible="False"/>
+                        <TextBox x:Name="RoomIdBox" Style="{StaticResource TextBoxStyle}" HorizontalAlignment="Stretch" Height="23" Margin="0,0,0,0" VerticalAlignment="Center" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput" TextChanged="RoomIdBox_TextChanged"/>
+                        <Grid x:Name="InfoGrid" Grid.Column="0" Background="Transparent" Visibility="Hidden" Cursor="Hand" MouseLeftButtonDown="InfoGrid_MouseLeftButtonDown">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="*"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+                            <TextBlock Grid.Row="0" x:Name="AreaBox" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="正在获取分区..." VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" HorizontalAlignment="Left" Margin="0,0,0,0" TextWrapping="Wrap" FontSize="14" Text="人气：" VerticalAlignment="Center"/>
+                            <TextBlock Grid.Row="1" x:Name="PopularityBox" HorizontalAlignment="Left" Margin="50,0,0,0" TextWrapping="Wrap" FontSize="14" Text="0" VerticalAlignment="Center"/>
+                        </Grid>
+                        <Button Grid.Column="1" x:Name="ConnectBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource Connect}" HorizontalAlignment="Center" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ConnectBtn_Click"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+
+            <Grid x:Name="CenterGrid" Grid.Row="1">
+                
+                <Grid x:Name="SettingGrid" Opacity="0">
+                    <Border BorderBrush="#FF47494F" BorderThickness="1">
+                        <ScrollViewer Style="{StaticResource ScrollViewerStyle}" ScrollViewer.VerticalScrollBarVisibility="Auto" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                            <Grid>
+                                <Rectangle Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
+                                    <Rectangle.Fill>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                            <GradientStop Color="#11ffffff" Offset="0.0" />
+                                            <GradientStop Color="#00000000" Offset="1.0" />
+                                        </LinearGradientBrush>
+                                    </Rectangle.Fill>
+                                </Rectangle>
+                                <StackPanel>
+                                    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0,0,0,1" BorderBrush="#FF47494F">
+                                        <TextBlock Text="{StaticResource Settings}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="170"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
+                                        <StackPanel Grid.Row="1" Grid.Column="0">
+                                            <TextBlock Text="{StaticResource SettingListCount}" FontSize="14" Height="23" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{StaticResource SettingHistoryCount}" FontSize="14" Height="23" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{StaticResource SettingConnectionTimeout}" FontSize="14" Height="23" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBlock Text="{StaticResource SettingRetryInterval}" FontSize="14" Height="23" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                            <TextBlock Text="{StaticResource IntegrationTime}" FontSize="14" Height="23" Margin="10,5" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Row="1" Grid.Column="1">
+                                            <TextBox x:Name="ListCapacitySettingBox" Style="{StaticResource TextBoxStyle}" Margin="10,5" FontSize="14" Padding="2" MinWidth="60" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
+                                            <TextBox x:Name="HistoryCapacitySettingBox" Style="{StaticResource TextBoxStyle}" Margin="10,5" FontSize="14" Padding="2" MinWidth="60" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
+                                            <TextBox x:Name="TimeoutSettingBox" Style="{StaticResource TextBoxStyle}" Margin="10,5" FontSize="14" Padding="2" MinWidth="60" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
+                                            <TextBox x:Name="RetryIntervalSettingBox" Style="{StaticResource TextBoxStyle}" Margin="10,5" FontSize="14" Padding="2" MinWidth="60" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
+                                            <TextBox x:Name="IntegrationTimeSettingBox" Style="{StaticResource TextBoxStyle}" Margin="10,5" FontSize="14" Padding="2" MinWidth="60" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
+                                        </StackPanel>
+                                    </Grid>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="ClearDanmakuBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearDanmaku}" HorizontalAlignment="Left" Margin="5,5" VerticalAlignment="Center" Width="75" Click="ClearDanmakuBtn_Click"/>
+                                        <Button x:Name="ClearGiftBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearGift}" HorizontalAlignment="Left" Margin="5,5" VerticalAlignment="Center" Width="75" Click="ClearGiftBtn_Click"/>
+                                        <Button x:Name="ClearHistoryBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearHistory}" HorizontalAlignment="Left" Margin="5,5" VerticalAlignment="Center" Width="75" Click="ClearHistoryBtn_Click"/>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button x:Name="ConfirmSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingConfirm}" HorizontalAlignment="Left" Margin="5,5" VerticalAlignment="Center" Width="75" Click="ConfirmSettingBtn_Click"/>
+                                        <Button x:Name="CancelSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingCancel}" HorizontalAlignment="Left" Margin="5,5" VerticalAlignment="Center" Width="75" Click="CancelSettingBtn_Click"/>
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </Grid>
+                        </ScrollViewer>
+                    </Border>
+                </Grid>
+
+
+                <Grid x:Name="ListGrid" Opacity="1">
                     <Grid.RowDefinitions>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="30"/>
-                        <RowDefinition Height="50"/>
-                        <RowDefinition Height="*"/>
+                        <RowDefinition/>
+                        <RowDefinition/>
                     </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="170"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-                    <Rectangle Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Grid.ColumnSpan="2" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
+                    <Rectangle Grid.Row="0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
                         <Rectangle.Fill>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
                                 <GradientStop Color="#11ffffff" Offset="0.0" />
@@ -388,118 +430,87 @@
                             </LinearGradientBrush>
                         </Rectangle.Fill>
                     </Rectangle>
-                    <Border Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" BorderThickness="0,0,0,1" BorderBrush="#FF47494F"/>
-                    <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Text="{StaticResource Settings}" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{StaticResource SettingListCount}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                    <TextBox x:Name="ListCapacitySettingBox" Grid.Row="1" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{StaticResource SettingHistoryCount}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                    <TextBox x:Name="HistoryCapacitySettingBox" Grid.Row="2" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="3" Grid.Column="0" Text="{StaticResource SettingConnectionTimeout}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                    <TextBox x:Name="TimeoutSettingBox" Grid.Row="3" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="4" Grid.Column="0" Text="{StaticResource SettingRetryInterval}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                    <TextBox x:Name="RetryIntervalSettingBox" Grid.Row="4" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <TextBlock Grid.Row="5" Grid.Column="0" Text="{StaticResource IntegrationTime}" Margin="10,0,0,0" FontSize="14" HorizontalAlignment="Left" VerticalAlignment="Center" />
-                    <TextBox x:Name="IntegrationTimeSettingBox" Grid.Row="5" Grid.Column="1" Style="{StaticResource TextBoxStyle}" Margin="10,0,10,0" FontSize="14" Padding="2" TextWrapping="NoWrap" HorizontalAlignment="Stretch" VerticalAlignment="Center" Height="23" DataObject.Pasting="NumberBox_Pasting" PreviewKeyDown="NumberBox_PreviewKeyDown" PreviewTextInput="NumberBox_PreviewTextInput"/>
-                    <Button Grid.Row="6" Grid.Column="0" x:Name="ClearDanmakuBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearDanmaku}" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearDanmakuBtn_Click"/>
-                    <Button Grid.Row="6" Grid.Column="0" x:Name="ClearGiftBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearGift}" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="ClearGiftBtn_Click"/>
-                    <Button Grid.Row="6" Grid.Column="1" x:Name="ClearHistoryBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingClearHistory}" HorizontalAlignment="Left" Margin="0,0,0,0" VerticalAlignment="Center" Width="75" Click="ClearHistoryBtn_Click"/>
-                    <Button Grid.Row="7" Grid.Column="0" x:Name="ConfirmSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingConfirm}" HorizontalAlignment="Left" Margin="8,0,0,0" VerticalAlignment="Center" Width="75" Click="ConfirmSettingBtn_Click"/>
-                    <Button Grid.Row="7" Grid.Column="0" x:Name="CancelSettingBtn" Style="{StaticResource ButtonStyle}" FontSize="14" Content="{StaticResource SettingCancel}" HorizontalAlignment="Right" Margin="0,0,8,0" VerticalAlignment="Center" Width="75" Click="CancelSettingBtn_Click"/>
-                </Grid>
-            </Border>
-        </ScrollViewer>
-
-        <Grid x:Name="ListGrid" Grid.Row="2">
-            <Grid.RowDefinitions>
-                <RowDefinition/>
-                <RowDefinition/>
-            </Grid.RowDefinitions>
-            <Rectangle Grid.Row="0" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#11ffffff" Offset="0.0" />
-                        <GradientStop Color="#00000000" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-            <ListBox Grid.Row="0" x:Name="DanmakuBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
-                <ListBoxItem>
-                    <TextBlock>
+                    <ListBox Grid.Row="0" x:Name="DanmakuBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="发送者" Foreground="#FFADBCD9"/><Run Text=" : " Foreground="#FF818181"/><Run Text="弹幕内容" Foreground="#FFFFFFFF"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="老爷用户名" Foreground="#FFDC8C32"/><Run Text="{StaticResource JoinedIn}" Foreground="#FFCBDAF7"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="舰长用户名" Foreground="#FF64D2F0"/><Run Text="{StaticResource JoinedIn}" Foreground="#FFCBDAF7"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="违规用户名" Foreground="#FFDC4646"/><Run Text="{StaticResource Banned}" Foreground="#FFDC4646"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="{StaticResource Connected}" Foreground="#FF19E62C"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="{StaticResource Disconnected}" Foreground="#FFE61919"/>
-                    </TextBlock>
-                </ListBoxItem>
-            </ListBox>
-            <Rectangle Grid.Row="1" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
-                <Rectangle.Fill>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                        <GradientStop Color="#11ffffff" Offset="0.0" />
-                        <GradientStop Color="#00000000" Offset="1.0" />
-                    </LinearGradientBrush>
-                </Rectangle.Fill>
-            </Rectangle>
-            <ListBox Grid.Row="1" x:Name="GiftBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                    </ListBox>
+                    <Rectangle Grid.Row="1" Height="50" VerticalAlignment="Top" HorizontalAlignment="Stretch" IsHitTestVisible="False">
+                        <Rectangle.Fill>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#11ffffff" Offset="0.0" />
+                                <GradientStop Color="#00000000" Offset="1.0" />
+                            </LinearGradientBrush>
+                        </Rectangle.Fill>
+                    </Rectangle>
+                    <ListBox Grid.Row="1" x:Name="GiftBox" Style="{StaticResource ListBoxStyle}" Background="Transparent" Foreground="White" BorderBrush="#FF47494F" FontSize="16" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" ScrollViewer.HorizontalScrollBarVisibility="Disabled" ScrollViewer.CanContentScroll="False">
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="赠送者" Foreground="#FFC8C83C"/><Run Text="{StaticResource Sent}" Foreground="#FFCBDAF7"/><Run Text="物品" Foreground="#FFFA82BE"/><Run Text=" x100" Foreground="#FF64D2F0"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="赠送者" Foreground="#FFC8C83C"/><Run Text="{StaticResource Sent}" Foreground="#FFCBDAF7"/><Run Text="物品" Foreground="#FFFA82BE"/><Run Text="{StaticResource Combo}" Foreground="#FFDC8C32"/><Run Text=" x100" Foreground="#FF64D2F0"/>
-                    </TextBlock>
-                </ListBoxItem>
-                <ListBoxItem>
-                    <TextBlock>
+                            </TextBlock>
+                        </ListBoxItem>
+                        <ListBoxItem>
+                            <TextBlock>
                         <Run Text="用户名" Foreground="#FF64D2F0"/><Run Text="{StaticResource Bought}" Foreground="#FFCBDAF7"/><Run Text="舰长" Foreground="#FFFA82BE"/>
-                    </TextBlock>
-                </ListBoxItem>
-            </ListBox>
-            <TextBlock x:Name="RhythmStormBox" Grid.Row="1" Opacity="0" IsHitTestVisible="False" Padding="7,4" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Stretch" TextWrapping="Wrap">
-                <TextBlock.Background>
-                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                        <GradientStop Color="#FFE6903E" Offset="0" />
-                        <GradientStop Color="#FFE6903E" Offset="0.8" />
-                        <GradientStop Color="#00E6903E" Offset="1" />
-                    </LinearGradientBrush>
-                </TextBlock.Background>
+                            </TextBlock>
+                        </ListBoxItem>
+                    </ListBox>
+                    <TextBlock x:Name="RhythmStormBox" Grid.Row="1" Opacity="0" IsHitTestVisible="False" Padding="7,4" FontSize="16" VerticalAlignment="Top" HorizontalAlignment="Stretch" TextWrapping="Wrap">
+                        <TextBlock.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                <GradientStop Color="#FFE6903E" Offset="0" />
+                                <GradientStop Color="#FFE6903E" Offset="0.8" />
+                                <GradientStop Color="#00E6903E" Offset="1" />
+                            </LinearGradientBrush>
+                        </TextBlock.Background>
                 <Run x:Name="RhythmStormTextBox" Text="节奏风暴" Foreground="#FF1F87C1"/><Run x:Name="RhythmStormCountBox" Text=" x100" Foreground="#FFD6406A"/>
-            </TextBlock>
-        </Grid>
+                    </TextBlock>
+                </Grid>
 
-        <Grid Grid.Row="3">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="{StaticResource CPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=CpuUsage, Path=Visibility}"/>
-            <TextBlock x:Name="CpuUsage" Grid.Column="0" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
-            <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{StaticResource GPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=GpuUsage, Path=Visibility}"/>
-            <TextBlock x:Name="GpuUsage" Grid.Column="1" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            </Grid>
+
+            <Grid x:Name="BottomGrid" Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" Margin="10,0,0,0" Text="{StaticResource CPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=CpuUsage, Path=Visibility}"/>
+                <TextBlock x:Name="CpuUsage" Grid.Column="0" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+                <TextBlock Grid.Column="1" Margin="10,0,0,0" Text="{StaticResource GPU}" VerticalAlignment="Center" HorizontalAlignment="Left" Visibility="{Binding ElementName=GpuUsage, Path=Visibility}"/>
+                <TextBlock x:Name="GpuUsage" Grid.Column="1" Margin="50,0,0,0" Text="0%" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            </Grid>
         </Grid>
-    </Grid>
+    </Border>
 </Window>
